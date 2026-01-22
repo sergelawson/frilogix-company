@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Particles from '../components/Particles';
+import ImageParticles from '../components/ImageParticles';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -72,10 +73,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-end">
             <div className="lg:col-span-8" ref={textRef}>
-              <div className="hero-animate mb-8 inline-flex items-center space-x-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
-                <span className="font-mono text-xs uppercase tracking-widest text-primary font-medium">System Operational</span>
-              </div>
+
               <h1 className="hero-animate text-6xl md:text-8xl lg:text-9xl font-light text-primary tracking-tight leading-[1] mb-12">
                 Engineering <br />
                 <span className="font-medium text-brand-dark">Intelligent</span> <br />
@@ -90,22 +88,18 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            <div className="lg:col-span-4 hero-animate hidden lg:block pb-2">
-              <div className="bg-white/50 backdrop-blur-md p-8 border-l border-secondary/50">
-                <p className="text-brand-gray text-lg font-light leading-relaxed mb-8">
-                  Frilogix combines scientific rigor with sustainable design to build scalable software and AI-powered applications.
+            <div className="lg:col-span-4 hero-animate hidden lg:flex flex-col justify-end min-h-[500px] pb-8">
+              <div className="w-full flex-1 flex items-center justify-center">
+                <ImageParticles />
+              </div>
+              <div className="w-full mt-6 pl-6 border-l border-secondary/50 relative">
+                <span className="absolute -left-[3px] top-0 w-[5px] h-[5px] bg-primary rounded-full"></span>
+                <span className="block text-xs font-mono text-secondary mb-3 tracking-widest uppercase">
+                  OUR COMPANY
+                </span>
+                <p className="text-brand-gray text-base font-light leading-relaxed">
+                  Frilogix is a software & AI engineering company building high‑performance web, mobile, and AI‑powered applications for startups and forward‑thinking businesses.
                 </p>
-                <div className="h-px w-full bg-secondary/50 my-8"></div>
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <span className="block text-3xl font-light text-primary">99.9%</span>
-                    <span className="text-xs font-mono text-brand-gray uppercase tracking-wider mt-1 block">Uptime</span>
-                  </div>
-                  <div>
-                    <span className="block text-3xl font-light text-primary">Global</span>
-                    <span className="text-xs font-mono text-brand-gray uppercase tracking-wider mt-1 block">Scale</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
