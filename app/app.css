@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/*
+ * Desktop one-page mode: pages sit side by side and vertical scrolling moves
+ * them horizontally (app/components/HorizontalPages.tsx). Everywhere else —
+ * narrow or short viewports, reduced motion, no JS — the pages stack
+ * vertically. Must stay identical to HORIZONTAL_QUERY in HorizontalPages.tsx.
+ */
+@custom-variant hscroll {
+  @media (min-width: 1280px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    @slot;
+  }
+}
+
+@theme {
+  /*
+   * Colours by role, not hue. Utilities read them through var(), so
+   * .theme-ink (below) can remap them for a dark panel. Text pairings are
+   * checked against WCAG AA 4.5:1 — keep them there when changing values.
+   */
+  --color-bg: #f6f7f7; /* paper */
+  --color-surface: #ffffff; /* cards on paper */
+  --color-fg: #00171f; /* ink: headings and body */
+  --color-fg-muted: #4b5d69; /* secondary copy */
+  --color-line: #dce2e5; /* hairlines */
+  --color-line-strong: #7f8f99; /* input and button borders: ≥ 3:1 (WCAG 1.4.11) */
+  --color-accent: #007ea7; /* buttons, focus, active nav — things you click */
+  --color-accent-strong: #006a8d; /* accent hover */
+  --color-on-accent: #ffffff;
+  --color-accent-ink: #005f7f; /* teal text at body size */
+  --color-tint: #9ad1d4; /* strokes and highlights, never text on paper */
+  --color-ink: #00171f;
+  --color-danger: #b42318; /* form errors */
+
+  --font-sans: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /*
+   * Fluid type. min(vw, vh) keeps display sizes inside one panel on short
+   * desktop screens while still scaling with width on phones.
+   */
+  --text-display: clamp(2.75rem, min(6.4vw, 10.5vh), 6.75rem);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.035em;
+  --text-h1: clamp(2.25rem, min(4.4vw, 7.4vh), 4.5rem);
+  --text-h1--line-height: 1.02;
+  --text-h1--letter-spacing: -0.03em;
+  --text-h2: clamp(1.75rem, min(3vw, 5vh), 2.75rem);
+  --text-h2--line-height: 1.08;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h3: clamp(1.1875rem, min(1.45vw, 2.5vh), 1.4375rem);
+  --text-h3--line-height: 1.25;
+  --text-h3--letter-spacing: -0.012em;
+  --text-lede: clamp(1.0625rem, min(1.3vw, 2.3vh), 1.3125rem);
+  --text-lede--line-height: 1.55;
+
+  --shadow-card: 0 1px 2px rgb(0 23 31 / 0.04), 0 18px 40px -24px rgb(0 23 31 / 0.22);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-nudge-x: nudge-x 1.6s ease-in-out infinite;
+  /* Runs from first paint in CSS, so server-rendered content never flashes out while JS loads. */
+  --animate-fade-up: fade-up 0.8s var(--ease-out-quint) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+
+  @keyframes nudge-x {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(6px);
+    }
+  }
+}
+
+/* Headings: Mona Sans' width axis, slightly expanded. */
+@utility font-wide {
+  font-stretch: 110%;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-tint);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  /* A dark panel (and the footer): same utilities, remapped roles. */
+  .theme-ink {
+    --color-bg: #00171f;
+    --color-surface: #072630;
+    --color-fg: #f6f7f7;
+    --color-fg-muted: #a9bcc6;
+    --color-line: #1d3a45;
+    --color-line-strong: #5b7783;
+    --color-accent-ink: #9ad1d4;
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+  }
+
+  .theme-ink :focus-visible {
+    outline-color: var(--color-tint);
+  }
+}
+
+@layer components {
+  .gsap-reveal {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/*
+ * Without JS GSAP never runs, and under reduced motion HorizontalPages skips
+ * the reveals — either way .gsap-reveal content would stay invisible.
+ */
+@media (scripting: none), (prefers-reduced-motion: reduce) {
+  .gsap-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
