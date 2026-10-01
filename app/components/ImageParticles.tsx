@@ -11,7 +11,7 @@ interface Particle {
     size: number;
 }
 
-const ImageParticles: FC = () => {
+const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -35,6 +35,8 @@ const ImageParticles: FC = () => {
             // Set canvas size to match container
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
+            // Hidden (e.g. the hero's art column below lg): getImageData throws on a 0×0 canvas.
+            if (!canvas.width || !canvas.height) return;
 
             // Draw image to offscreen canvas to read data
             const offscreen = document.createElement('canvas');
@@ -151,23 +153,38 @@ const ImageParticles: FC = () => {
             init();
         };
 
-        image.onload = () => {
-            init();
-            update();
+        // Only animate once the image is ready and while the canvas is on
+        // screen — on the one-page site it stays mounted behind every page.
+        let loaded = false;
+        let visible = false;
+        const run = () => {
+            cancelAnimationFrame(animationFrameId);
+            if (loaded && visible) animationFrameId = requestAnimationFrame(update);
         };
+        const handleLoad = () => {
+            if (loaded) return;
+            loaded = true;
+            init();
+            run();
+        };
+        const observer = new IntersectionObserver(([entry]) => {
+            visible = entry.isIntersecting;
+            run();
+        });
+
+        image.onload = handleLoad;
 
         // In case image is already cached
-        if (image.complete) {
-            init();
-            update();
-        }
+        if (image.complete) handleLoad();
 
         canvas.addEventListener('mousemove', handleMouseMove);
         canvas.addEventListener('mouseleave', handleMouseLeave);
         window.addEventListener('resize', handleResize);
+        observer.observe(container);
 
         return () => {
             cancelAnimationFrame(animationFrameId);
+            observer.disconnect();
             canvas.removeEventListener('mousemove', handleMouseMove);
             canvas.removeEventListener('mouseleave', handleMouseLeave);
             window.removeEventListener('resize', handleResize);
@@ -175,7 +192,7 @@ const ImageParticles: FC = () => {
     }, []);
 
     return (
-        <div ref={containerRef} className="w-full h-96 relative flex items-center justify-center">
+        <div ref={containerRef} className={`w-full relative flex items-center justify-center ${className}`}>
             <canvas ref={canvasRef} className="cursor-crosshair" />
         </div>
     );

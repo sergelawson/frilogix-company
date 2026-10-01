@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/*
+ * Desktop one-page mode: pages sit side by side and vertical scrolling moves
+ * them horizontally (app/components/HorizontalPages.tsx). Everywhere else —
+ * narrow or short viewports, reduced motion, no JS — the pages stack
+ * vertically. Must stay identical to HORIZONTAL_QUERY in HorizontalPages.tsx.
+ */
+@custom-variant hscroll {
+  @media (min-width: 1280px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    @slot;
+  }
+}
+
 @theme {
   /* Primary Colors */
   --color-primary: #007ea7;
@@ -24,6 +36,19 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
+
+  /* Animations */
+  --animate-nudge-x: nudge-x 1.6s ease-in-out infinite;
+
+  @keyframes nudge-x {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(6px);
+    }
+  }
 }
 
 @layer base {
@@ -59,8 +84,11 @@
   }
 }
 
-/* Without JS, GSAP never runs and .gsap-reveal content would stay invisible. */
-@media (scripting: none) {
+/*
+ * Without JS GSAP never runs, and under reduced motion HorizontalPages skips
+ * the reveals — either way .gsap-reveal content would stay invisible.
+ */
+@media (scripting: none), (prefers-reduced-motion: reduce) {
   .gsap-reveal {
     opacity: 1;
     transform: none;

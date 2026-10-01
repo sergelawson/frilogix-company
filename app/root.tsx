@@ -5,7 +5,6 @@ import {
   Meta,
   Outlet,
   Scripts,
-  ScrollRestoration,
   isRouteErrorResponse,
 } from "react-router";
 
@@ -48,7 +47,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </head>
       <body className="font-sans overflow-x-hidden min-h-screen">
         {children}
-        <ScrollRestoration />
+        {/* No <ScrollRestoration />: HorizontalPages owns scroll position for the one-page site. */}
         <Scripts />
       </body>
     </html>

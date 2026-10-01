@@ -85,12 +85,20 @@ const Particles: FC = () => {
             animationFrameId = requestAnimationFrame(draw);
         };
 
+        // Only animate while on screen — on the one-page site this canvas stays
+        // mounted while every other page is being viewed.
+        const observer = new IntersectionObserver(([entry]) => {
+            cancelAnimationFrame(animationFrameId);
+            if (entry.isIntersecting) animationFrameId = requestAnimationFrame(draw);
+        });
+
         window.addEventListener('resize', resize);
         resize();
-        draw();
+        observer.observe(canvas);
 
         return () => {
             window.removeEventListener('resize', resize);
+            observer.disconnect();
             cancelAnimationFrame(animationFrameId);
         };
     }, []);

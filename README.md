@@ -35,8 +35,9 @@ There is no test suite yet.
 app/
   root.tsx          Document shell, <Meta>/<Links>, nav + footer, ErrorBoundary (404)
   routes.ts         Route table
-  routes/           One module per page, each exporting `meta` + a default component
-  components/       Navbar, Footer, and the two canvas particle systems
+  routes/           site.tsx (the one-page layout) + one meta-only module per page URL
+  sections/         Page content — every page is a section of the one-page site
+  components/       Navbar, Footer, HorizontalPages (scroll engine), Panel, particle canvases
   app.css           Tailwind v4 entry + @theme design tokens
 public/             Static assets served at the web root
 react-router.config.ts   SSR config
