@@ -1,19 +1,27 @@
-"use client";
-
-import React, { useEffect, useRef } from 'react';
-import Link from 'next/link';
+import { useEffect, useRef } from 'react';
+import { Link } from 'react-router';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Particles from '../components/Particles';
-import ImageParticles from '../components/ImageParticles';
+import Particles from '~/components/Particles';
+import ImageParticles from '~/components/ImageParticles';
+import type { Route } from './+types/home';
 
-gsap.registerPlugin(ScrollTrigger);
+export const meta: Route.MetaFunction = () => [
+  { title: 'Frilogix | Software & AI Engineering Company' },
+  {
+    name: 'description',
+    content:
+      'Frilogix is a software and AI engineering company building high-performance web, mobile, and AI-powered applications with React, Node.js, Go, and LLM-based systems.',
+  },
+];
 
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+
     // Initial Load Animations
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
@@ -80,10 +88,10 @@ export default function Home() {
                 Futures.
               </h1>
               <div className="hero-animate flex flex-col sm:flex-row gap-6 mt-16">
-                <Link href="/contact" className="inline-flex items-center justify-center px-10 py-5 bg-primary text-white font-medium text-sm hover:bg-primary-dark transition-all rounded-sm min-w-[180px] shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-1">
+                <Link to="/contact" className="inline-flex items-center justify-center px-10 py-5 bg-primary text-white font-medium text-sm hover:bg-primary-dark transition-all rounded-sm min-w-[180px] shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-1">
                   Start Project
                 </Link>
-                <Link href="/services" className="inline-flex items-center justify-center px-10 py-5 bg-transparent border border-primary/30 text-primary font-medium text-sm hover:border-primary transition-all rounded-sm min-w-[180px] backdrop-blur-sm">
+                <Link to="/services" className="inline-flex items-center justify-center px-10 py-5 bg-transparent border border-primary/30 text-primary font-medium text-sm hover:border-primary transition-all rounded-sm min-w-[180px] backdrop-blur-sm">
                   Explore Services
                 </Link>
               </div>
@@ -98,7 +106,7 @@ export default function Home() {
                   OUR COMPANY
                 </span>
                 <p className="text-brand-gray text-base font-light leading-relaxed">
-                  Frilogix is a software & AI engineering company building high‑performance web, mobile, and AI‑powered applications for startups and forward‑thinking businesses.
+                  Frilogix is a software &amp; AI engineering company building high&#8209;performance web, mobile, and AI&#8209;powered applications for startups and forward&#8209;thinking businesses.
                 </p>
               </div>
             </div>
@@ -201,7 +209,7 @@ export default function Home() {
           <p className="text-secondary text-2xl font-light mb-16 max-w-2xl mx-auto">
             Let&apos;s engineer a solution that stands the test of time.
           </p>
-          <Link href="/contact" className="inline-block px-14 py-6 bg-white text-primary font-medium text-lg hover:bg-secondary hover:text-white transition-colors rounded-sm shadow-xl hover:shadow-2xl hover:-translate-y-1 transform duration-300">
+          <Link to="/contact" className="inline-block px-14 py-6 bg-white text-primary font-medium text-lg hover:bg-secondary hover:text-white transition-colors rounded-sm shadow-xl hover:shadow-2xl hover:-translate-y-1 transform duration-300">
             Start Conversation
           </Link>
         </div>

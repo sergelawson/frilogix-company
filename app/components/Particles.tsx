@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, type FC } from 'react';
 
 interface Particle {
     x: number;
@@ -10,7 +8,7 @@ interface Particle {
     size: number;
 }
 
-const Particles: React.FC = () => {
+const Particles: FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {

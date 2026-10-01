@@ -1,5 +1,16 @@
-import React from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router';
+import type { Route } from './+types/case-studies';
+
+export const meta: Route.MetaFunction = () => [
+    { title: 'Case Studies | Frilogix' },
+    {
+        name: 'description',
+        content:
+            'Deep dives into the technical architecture behind Frilogix projects with startups and enterprises. Coming soon.',
+    },
+    // Thin placeholder page — keep it out of the index until it has real content.
+    { name: 'robots', content: 'noindex, follow' },
+];
 
 export default function CaseStudies() {
     return (
@@ -12,7 +23,7 @@ export default function CaseStudies() {
                 <p className="text-2xl text-brand-gray max-w-3xl mx-auto mb-16 font-light leading-relaxed">
                     We&apos;re currently documenting our recent wins with startups and enterprises. Check back soon for deep dives into our technical architecture.
                 </p>
-                <Link href="/contact" className="px-12 py-5 bg-primary text-white font-medium text-lg rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all">
+                <Link to="/contact" className="px-12 py-5 bg-primary text-white font-medium text-lg rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all">
                     Discuss Your Success Story
                 </Link>
             </div>

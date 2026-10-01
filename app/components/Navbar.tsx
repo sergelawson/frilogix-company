@@ -1,14 +1,10 @@
-"use client";
+import { useState, useEffect, type FC } from "react";
+import { Link, useLocation } from "react-router";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import Image from 'next/image';
-
-const Navbar: React.FC = () => {
+const Navbar: FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
-    const pathname = usePathname();
+    const { pathname } = useLocation();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -20,7 +16,6 @@ const Navbar: React.FC = () => {
 
     const navLinks = [
         { name: 'Services', path: '/services' },
-        { name: 'AI Engineering', path: '/ai-engineering' },
         { name: 'About', path: '/about' },
         { name: 'Case Studies', path: '/case-studies' },
     ];
@@ -38,14 +33,14 @@ const Navbar: React.FC = () => {
                         }`}
                 >
                     {/* Logo */}
-                    <Link href="/" className="flex items-center group">
-                        <Image
+                    <Link to="/" className="flex items-center group">
+                        <img
                             src="/logo.png"
                             alt="Frilogix"
                             width={160}
                             height={40}
                             className="h-10 w-auto"
-                            priority
+                            fetchPriority="high"
                         />
                     </Link>
 
@@ -54,14 +49,14 @@ const Navbar: React.FC = () => {
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
-                                href={link.path}
+                                to={link.path}
                                 className={`text-sm tracking-wide transition-colors ${pathname === link.path ? 'text-primary font-medium border-b-2 border-secondary pb-1' : 'text-brand-gray hover:text-primary'}`}
                             >
                                 {link.name}
                             </Link>
                         ))}
                         <Link
-                            href="/contact"
+                            to="/contact"
                             className="ml-4 px-8 py-3 bg-primary text-white text-sm font-medium hover:bg-primary-dark transition-all rounded-sm shadow-lg shadow-primary/20"
                         >
                             Start Project
@@ -89,7 +84,7 @@ const Navbar: React.FC = () => {
                     {navLinks.map((link) => (
                         <Link
                             key={link.name}
-                            href={link.path}
+                            to={link.path}
                             onClick={() => setIsOpen(false)}
                             className="block text-2xl font-light text-brand-dark hover:text-primary"
                         >
@@ -98,7 +93,7 @@ const Navbar: React.FC = () => {
                     ))}
                     <div className="pt-6 border-t border-secondary/20">
                         <Link
-                            href="/contact"
+                            to="/contact"
                             onClick={() => setIsOpen(false)}
                             className="block w-full py-4 bg-primary text-white text-center font-medium hover:bg-primary-dark transition-colors"
                         >

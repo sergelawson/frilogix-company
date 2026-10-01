@@ -1,11 +1,22 @@
-"use client";
+import { useState, type FormEvent } from 'react';
+import type { Route } from './+types/contact';
 
-import React, { useState } from 'react';
+export const meta: Route.MetaFunction = () => [
+    { title: 'Contact Frilogix — Start Your Project' },
+    {
+        name: 'description',
+        content:
+            'Tell us about your project. Frilogix takes software and AI engineering work from MVP to enterprise scale. Get a response within 24 hours.',
+    },
+];
 
 export default function Contact() {
     const [formState, setFormState] = useState<'idle' | 'loading' | 'success'>('idle');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // TODO(launch-blocker): this is a mock. Nothing is sent anywhere and every
+    // submission is silently discarded. Replace with a React Router `action`
+    // export + transactional email before going live. See LAUNCH-AUDIT.md P0 #1.
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         setFormState('loading');
         setTimeout(() => {
@@ -57,21 +68,21 @@ export default function Contact() {
                             <form onSubmit={handleSubmit} className="space-y-10">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
                                     <div className="space-y-3">
-                                        <label className="block text-xs font-mono font-bold text-brand-dark uppercase tracking-wider">Full Name</label>
-                                        <input required type="text" className="w-full px-0 py-4 bg-transparent border-b border-secondary/30 focus:border-primary outline-none transition-colors text-brand-dark placeholder-brand-gray/50 text-lg" placeholder="Enter name" />
+                                        <label htmlFor="name" className="block text-xs font-mono font-bold text-brand-dark uppercase tracking-wider">Full Name</label>
+                                        <input id="name" name="name" required type="text" autoComplete="name" className="w-full px-0 py-4 bg-transparent border-b border-secondary/30 focus:border-primary outline-none transition-colors text-brand-dark placeholder-brand-gray/50 text-lg" placeholder="Enter name" />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="block text-xs font-mono font-bold text-brand-dark uppercase tracking-wider">Email</label>
-                                        <input required type="email" className="w-full px-0 py-4 bg-transparent border-b border-secondary/30 focus:border-primary outline-none transition-colors text-brand-dark placeholder-brand-gray/50 text-lg" placeholder="Enter email" />
+                                        <label htmlFor="email" className="block text-xs font-mono font-bold text-brand-dark uppercase tracking-wider">Email</label>
+                                        <input id="email" name="email" required type="email" autoComplete="email" className="w-full px-0 py-4 bg-transparent border-b border-secondary/30 focus:border-primary outline-none transition-colors text-brand-dark placeholder-brand-gray/50 text-lg" placeholder="Enter email" />
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="block text-xs font-mono font-bold text-brand-dark uppercase tracking-wider">Company</label>
-                                    <input type="text" className="w-full px-0 py-4 bg-transparent border-b border-secondary/30 focus:border-primary outline-none transition-colors text-brand-dark placeholder-brand-gray/50 text-lg" placeholder="Company name" />
+                                    <label htmlFor="company" className="block text-xs font-mono font-bold text-brand-dark uppercase tracking-wider">Company</label>
+                                    <input id="company" name="company" type="text" autoComplete="organization" className="w-full px-0 py-4 bg-transparent border-b border-secondary/30 focus:border-primary outline-none transition-colors text-brand-dark placeholder-brand-gray/50 text-lg" placeholder="Company name" />
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="block text-xs font-mono font-bold text-brand-dark uppercase tracking-wider">Details</label>
-                                    <textarea required rows={4} className="w-full px-0 py-4 bg-transparent border-b border-secondary/30 focus:border-primary outline-none transition-colors text-brand-dark placeholder-brand-gray/50 resize-none text-lg" placeholder="Project description..."></textarea>
+                                    <label htmlFor="details" className="block text-xs font-mono font-bold text-brand-dark uppercase tracking-wider">Details</label>
+                                    <textarea id="details" name="details" required rows={4} className="w-full px-0 py-4 bg-transparent border-b border-secondary/30 focus:border-primary outline-none transition-colors text-brand-dark placeholder-brand-gray/50 resize-none text-lg" placeholder="Project description..."></textarea>
                                 </div>
                                 <div className="pt-8">
                                     <button

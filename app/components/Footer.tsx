@@ -1,13 +1,13 @@
-import React from 'react';
-import Link from 'next/link';
+import type { FC } from 'react';
+import { Link } from 'react-router';
 
-const Footer: React.FC = () => {
+const Footer: FC = () => {
     return (
         <footer className="bg-primary text-white py-24">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row justify-between items-start mb-24 gap-12">
                     <div className="max-w-xs">
-                        <Link href="/" className="text-2xl font-semibold tracking-tight text-white flex items-center mb-6">
+                        <Link to="/" className="text-2xl font-semibold tracking-tight text-white flex items-center mb-6">
                             FRILOGIX <span className="ml-1 w-2 h-2 bg-secondary rounded-full"></span>
                         </Link>
                         <p className="text-sm font-light text-secondary/80 leading-relaxed">
@@ -19,10 +19,10 @@ const Footer: React.FC = () => {
                         <div>
                             <h4 className="font-mono text-xs uppercase tracking-widest text-secondary mb-8">Sitemap</h4>
                             <ul className="space-y-4 text-sm font-light text-white/80">
-                                <li><Link href="/about" className="hover:text-white hover:underline transition-all">About</Link></li>
-                                <li><Link href="/services" className="hover:text-white hover:underline transition-all">Services</Link></li>
-                                <li><Link href="/ai-engineering" className="hover:text-white hover:underline transition-all">AI Lab</Link></li>
-                                <li><Link href="/contact" className="hover:text-white hover:underline transition-all">Contact</Link></li>
+                                <li><Link to="/about" className="hover:text-white hover:underline transition-all">About</Link></li>
+                                <li><Link to="/services" className="hover:text-white hover:underline transition-all">Services</Link></li>
+                                <li><Link to="/services#intelligent-systems" className="hover:text-white hover:underline transition-all">AI Engineering</Link></li>
+                                <li><Link to="/contact" className="hover:text-white hover:underline transition-all">Contact</Link></li>
                             </ul>
                         </div>
                         <div>

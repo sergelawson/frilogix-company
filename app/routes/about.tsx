@@ -1,14 +1,21 @@
-"use client";
-
-import React, { useEffect } from 'react';
-import Image from 'next/image';
+import { useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import type { Route } from './+types/about';
 
-gsap.registerPlugin(ScrollTrigger);
+export const meta: Route.MetaFunction = () => [
+    { title: 'About Frilogix — Software & AI Engineering Team' },
+    {
+        name: 'description',
+        content:
+            'Frilogix bridges high-level business strategy and deep technical execution. A remote-first team of engineers, designers, and AI researchers building production software.',
+    },
+];
 
 export default function About() {
     useEffect(() => {
+        gsap.registerPlugin(ScrollTrigger);
+
         const reveals = gsap.utils.toArray('.gsap-reveal') as HTMLElement[];
         reveals.forEach((elem) => {
             gsap.fromTo(elem, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1, ease: "power2.out", scrollTrigger: { trigger: elem, start: "top 85%" } });
@@ -37,11 +44,12 @@ export default function About() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 mb-40">
                     <div className="gsap-reveal">
                         <div className="w-full aspect-[4/5] bg-gray-200 grayscale opacity-90 relative overflow-hidden">
-                            <Image
+                            {/* TODO: replace placeholder stock image before launch */}
+                            <img
                                 src="https://picsum.photos/seed/architecture/800/1000"
                                 alt="Clean Architecture"
-                                fill
-                                className="object-cover mix-blend-multiply"
+                                loading="lazy"
+                                className="absolute inset-0 w-full h-full object-cover mix-blend-multiply"
                             />
                             <div className="absolute inset-0 bg-primary/10"></div>
                         </div>

@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, type FC } from 'react';
 
 interface Particle {
     x: number;
@@ -13,9 +11,8 @@ interface Particle {
     size: number;
 }
 
-const ImageParticles: React.FC = () => {
+const ImageParticles: FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [dimensions, setDimensions] = useState({ width: 500, height: 500 });
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -28,7 +25,7 @@ const ImageParticles: React.FC = () => {
 
         let particles: Particle[] = [];
         let animationFrameId: number;
-        let mouse = { x: -1000, y: -1000, radius: 80 };
+        const mouse = { x: -1000, y: -1000, radius: 80 };
 
         // Image to load
         const image = new Image();
@@ -38,7 +35,6 @@ const ImageParticles: React.FC = () => {
             // Set canvas size to match container
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
-            setDimensions({ width: canvas.width, height: canvas.height });
 
             // Draw image to offscreen canvas to read data
             const offscreen = document.createElement('canvas');
@@ -100,8 +96,8 @@ const ImageParticles: React.FC = () => {
                 const dy = mouse.y - p.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                let forceDirectionX = dx / distance;
-                let forceDirectionY = dy / distance;
+                const forceDirectionX = dx / distance;
+                const forceDirectionY = dy / distance;
 
                 const maxDistance = mouse.radius;
                 const force = (maxDistance - distance) / maxDistance; // Stronger when closer
