@@ -9,6 +9,29 @@
 > **P1 #12**, the JS-disabled risk in **P1 #14**, and the lint + custom-404 items in **P2**.
 > Resolved items are struck through and marked ✅ below. Everything else still stands.
 
+> **Update (redesign, 2026-10-01):** the site is now one page with horizontal scrolling on
+> desktop and the "Engineered Swiss" design (`spec.md` §11). Measured on the production build:
+> Lighthouse desktop 100 / 100 / 100 / 100 and mobile 90–91 performance, 100 accessibility,
+> best practices and SEO; zero axe violations. Beyond the strike-throughs below, that change:
+>
+> - **P0 #1** — the form now posts to a real `action` with validation and a honeypot, and emails
+>   via Resend. ⚠️ It needs `RESEND_API_KEY`, `CONTACT_TO_EMAIL` and `CONTACT_FROM_EMAIL` in
+>   production; without them it tells visitors to email instead. No rate limiting yet.
+> - **P0 #2** — About now has a CTA and internal links.
+> - **P0 #4** — Open Graph + Twitter tags and an OG image on every page. Canonicals, sitemap,
+>   robots.txt and JSON-LD are still missing.
+> - **P0 #5** — dead `#` links removed: social links render only once URLs are set in
+>   `app/content/site.ts`. Privacy/Terms pages are still needed.
+> - **P1 #9** — "Sustainable Engineering" removed.
+> - **P1 #12** — mobile menu has `aria-expanded`/Esc/focus handling, a skip link exists, the
+>   canvas is `aria-hidden`, and every text pairing passes AA.
+> - **P1 #13** — reduced motion gets a static vertical layout.
+> - **P2** — the connected-dot canvas is gone; the particle X only animates while the mouse
+>   is on it. The picsum stock image is gone.
+>
+> Still open: P0 #6 (business identity), P1 #7 (analytics), P1 #8 (proof — the Proof, Work and
+> Team panels are built and wait for real content), P1 #10–11 content.
+
 ---
 
 ## Verdict

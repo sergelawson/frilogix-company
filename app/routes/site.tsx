@@ -3,19 +3,19 @@ import { Outlet } from 'react-router';
 import HorizontalPages from '~/components/HorizontalPages';
 import HomeSection from '~/sections/HomeSection';
 import ServicesSection from '~/sections/ServicesSection';
+import WorkSection from '~/sections/WorkSection';
 import AboutSection from '~/sections/AboutSection';
-import CaseStudiesSection from '~/sections/CaseStudiesSection';
 import ContactSection from '~/sections/ContactSection';
 
-// Order here is the scroll order — keep it matching the navbar.
+// Order here is the scroll order — keep it matching `pages` in ~/content/site.
 // Memoized so the URL updates made while scrolling don't re-render every page.
 const Sections = memo(function Sections() {
     return (
         <>
             <HomeSection />
             <ServicesSection />
+            <WorkSection />
             <AboutSection />
-            <CaseStudiesSection />
             <ContactSection />
         </>
     );

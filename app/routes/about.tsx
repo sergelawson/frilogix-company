@@ -1,13 +1,14 @@
 import type { Route } from './+types/about';
+import { pageMeta } from '~/lib/meta';
 
-export const meta: Route.MetaFunction = () => [
-    { title: 'About Frilogix — Software & AI Engineering Team' },
-    {
-        name: 'description',
-        content:
+export const meta: Route.MetaFunction = ({ matches }) =>
+    pageMeta({
+        title: 'About Frilogix — Software & AI Engineering Team',
+        description:
             'Frilogix bridges high-level business strategy and deep technical execution. A remote-first team of engineers, designers, and AI researchers building production software.',
-    },
-];
+        path: '/about',
+        matches,
+    });
 
 // Content lives in ~/sections/AboutSection, rendered by the one-page layout
 // (routes/site.tsx). This route only supplies the URL and its meta.

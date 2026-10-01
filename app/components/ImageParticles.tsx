@@ -26,6 +26,7 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
         let particles: Particle[] = [];
         let animationFrameId: number;
         const mouse = { x: -1000, y: -1000, radius: 80 };
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // Image to load
         const image = new Image();
@@ -87,8 +88,11 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
             }
         };
 
-        const update = () => {
+        // Advances the physics one frame and draws it. Returns the fastest
+        // particle's speed, so the loop below knows when everything has settled.
+        const step = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let fastest = 0;
 
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
@@ -127,6 +131,7 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
 
                 p.x += p.vx;
                 p.y += p.vy;
+                fastest = Math.max(fastest, Math.abs(p.vx) + Math.abs(p.vy));
 
                 // Draw
                 ctx.fillStyle = p.color;
@@ -134,7 +139,32 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
                 ctx.fillRect(p.x, p.y, p.size, p.size); // Rect is faster than arc
             }
 
-            animationFrameId = requestAnimationFrame(update);
+            return fastest;
+        };
+
+        // The shape is drawn once and only animated while the mouse stirs it
+        // or particles are still springing back. At rest — and on touch
+        // screens, where nothing can disturb it — it costs no frames at all.
+        // Under reduced motion it never animates.
+        let loaded = false;
+        let visible = false;
+        let looping = false;
+        const mouseInside = () => mouse.x > -1000;
+
+        const loop = () => {
+            const fastest = step();
+            looping = visible && (mouseInside() || fastest > 0.05);
+            animationFrameId = looping ? requestAnimationFrame(loop) : 0;
+        };
+        const startLoop = () => {
+            if (looping || !loaded || !visible || reduceMotion) return;
+            looping = true;
+            animationFrameId = requestAnimationFrame(loop);
+        };
+        const drawStill = () => {
+            cancelAnimationFrame(animationFrameId);
+            looping = false;
+            if (loaded && visible) step();
         };
 
         // Event Listeners
@@ -142,6 +172,7 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
             const rect = canvas.getBoundingClientRect();
             mouse.x = e.clientX - rect.left;
             mouse.y = e.clientY - rect.top;
+            startLoop();
         };
 
         const handleMouseLeave = () => {
@@ -151,25 +182,18 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
 
         const handleResize = () => {
             init();
-        };
-
-        // Only animate once the image is ready and while the canvas is on
-        // screen — on the one-page site it stays mounted behind every page.
-        let loaded = false;
-        let visible = false;
-        const run = () => {
-            cancelAnimationFrame(animationFrameId);
-            if (loaded && visible) animationFrameId = requestAnimationFrame(update);
+            drawStill();
         };
         const handleLoad = () => {
             if (loaded) return;
             loaded = true;
             init();
-            run();
+            drawStill();
         };
         const observer = new IntersectionObserver(([entry]) => {
             visible = entry.isIntersecting;
-            run();
+            drawStill();
+            startLoop(); // finishes any spring-back left mid-way; stops after one frame if settled
         });
 
         image.onload = handleLoad;
@@ -193,7 +217,7 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
 
     return (
         <div ref={containerRef} className={`w-full relative flex items-center justify-center ${className}`}>
-            <canvas ref={canvasRef} className="cursor-crosshair" />
+            <canvas ref={canvasRef} aria-hidden="true" className="cursor-crosshair" />
         </div>
     );
 };

@@ -22,7 +22,7 @@ Frilogix Product Team
 
 ## Last Updated
 
-2026-01-18
+2026-10-01 (site structure, tech stack and design direction; earlier: 2026-01-18)
 
 ---
 
@@ -104,13 +104,16 @@ Create a clean, modern, high-performance website that reflects Frilogix’s engi
 
 ### Pages
 
+The site is a **single page**. Each page below is a section of one document with its own URL
+(`/`, `/services`, `/work`, `/about`, `/contact`); on desktop the sections sit side by side and
+vertical scrolling moves them horizontally. The navigation order is the scroll order:
+
 1. Home
-2. Services
-3. AI Engineering
+2. Services (includes AI Engineering — see 7.3)
+3. Work (formerly "Case Studies"; `/case-studies` redirects here)
 4. About Us
-5. Case Studies (Phase 2 – placeholder)
-6. Contact
-7. Privacy Policy & Legal (Placeholder links in Footer)
+5. Contact
+6. Privacy Policy & Legal (to be written; not linked until they exist)
 
 ---
 
@@ -156,6 +159,9 @@ Create a clean, modern, high-performance website that reflects Frilogix’s engi
 
 ### 7.3 AI Engineering Page
 
+> Merged into Services as its "AI in production" panel; `/ai-engineering` redirects to
+> `/services#intelligent-systems`. The content requirements below still apply to that panel.
+
 **Objective:** Position Frilogix as an advanced AI engineering company.
 
 **Content:**
@@ -188,13 +194,17 @@ Create a clean, modern, high-performance website that reflects Frilogix’s engi
 
 ---
 
-### 7.5 Case Studies Page (Phase 2)
+### 7.5 Work Page (formerly Case Studies, Phase 2)
 
 **Objective:** Demonstrate real-world impact.
 
+**Each case study:** client type (anonymised is fine), problem, approach, stack, and an outcome
+with a number. One case study per panel.
+
 **Initial State:**
 
-* Placeholder with "Coming Soon"
+* A "case studies are being written up" panel, kept out of the search index until real case
+  studies exist
 
 ---
 
@@ -238,10 +248,11 @@ Create a clean, modern, high-performance website that reflects Frilogix’s engi
 
 ### Frontend
 
-* **Framework:** Next.js 16 (App Router)
+* **Framework:** React Router 7 (framework mode, SSR)
 * **React:** React 19
 * **Styling:** Tailwind CSS v4
-* **Animations:** GSAP (npm package)
+* **Animations:** GSAP + ScrollTrigger (npm package)
+* **Fonts:** Mona Sans and JetBrains Mono, self-hosted via Fontsource
 * **Language:** TypeScript
 
 ### Backend (Planned/Mocked)
@@ -269,20 +280,29 @@ Create a clean, modern, high-performance website that reflects Frilogix’s engi
 
 ## 11. Design Requirements
 
-* A high-end, modern 'Clean-Tech' website UI design featuring a minimalist Swiss-style layout. The color palette is dominated by a soft sage green and off-white background, accented with deep forest green text and vibrant neon-lime highlights for section headers and UI elements. The typography uses a clean, professional sans-serif (like Helvetica or Inter) with generous kerning and varying weights. Visuals include hyper-realistic 3D renders and monochromatic pale finish, alongside crisp, high-key macro photography of laboratory glassware and recycled plastic flakes. The layout is structured in spacious horizontal sections with thin divider lines, circular infographic elements, and 'Value' cards with soft drop shadows. The overall aesthetic is scientific, sustainable, airy, and premium.
-* Typography: A "Neo-Grotesque" sans-serif. Headers are large, thin-weight, and sentence-case. Body text is compact with high line-height for readability.
-* Imagery Style: "Studio Clean." Products and materials are photographed against a neutral, high-brightness background with soft, diffused shadows. 3D models are simplified and rendered in a matte, single-tone material to match the brand colors.
-* Layout Strategy:
-* Grid: 4-column grid for "Value" cards.
-* Whitespace: Extremely high; nothing feels crowded.
-* Navigation: Minimalist top-bar with a "liquid glass" scroll effect (transparent at top, blurring and translucent on scroll) and a single high-contrast "Call to Action" (CTA) button in the corner.
-* Colors: primary: #007ea7, secondary: #9ad1d4, dark: #003459 (Defined in index.html tailwind config)
+Direction: **"Engineered Swiss"** (adopted 2026-10-01; replaces the earlier sage-green
+"Clean-Tech" brief). Keep the Swiss structure — grid, hairlines, whitespace, glass navbar — and
+let neutrals carry the page, teal mark only what you can click, and proof replace decoration.
+
+* **Palette by role** (tokens in `app/app.css`): ink `#00171f` for text and dark panels, a
+  near-neutral paper `#f6f7f7` background, white cards, teal `#007ea7` for buttons, focus and
+  active navigation only, `#005f7f` for teal text, tint `#9ad1d4` for strokes (never text on
+  paper). Every text pairing meets WCAG AA 4.5:1; borders of controls meet 3:1.
+* **Rhythm:** paper panels with one ink panel per page where the page has more than one panel;
+  the footer is ink.
+* **Typography:** Mona Sans for display and body — display at semibold, slightly expanded, with
+  tight tracking, sentence case; body 16–18 px regular. JetBrains Mono only for small technical
+  labels. Display sizes scale with both width and height so each screen fits one viewport.
+* **Imagery:** evidence over decoration — diagrams of how systems are built, monochrome stack
+  logos, client logos, case-study numbers, and real team photos. No stock photography, no fake
+  terminals. The particle "X" in the hero is the single signature visual.
+* **Navigation:** a 72 px top bar, transparent at the top and translucent once scrolled (ink over
+  ink panels), with a page counter and a single primary CTA, "Book a call".
 
 ### Animation Requirements
 
-* Use **GSAP (GreenSock Animation Platform)** for animations (Loaded via CDN)
-* Smooth page transitions and section reveals
-* Scroll-based animations (e.g. fade, slide, parallax effects)
+* The horizontal page scroll is the site's main motion (GSAP ScrollTrigger, npm package); other
+  motion stays quiet: at most one reveal per panel, 150–300 ms hover feedback, no parallax
 * Micro-interactions for CTAs and buttons
 * Animations must:
 

@@ -1,47 +1,68 @@
 import type { FC } from 'react';
 import { Link } from 'react-router';
+import { pages, site } from '~/content/site';
 
+const serviceLinks = [
+    { label: 'All services', to: '/services' },
+    { label: 'AI engineering', to: '/services#intelligent-systems' },
+    { label: 'How we work', to: '/services#process' },
+];
+
+const columnTitle = 'mb-5 font-mono text-xs font-medium uppercase tracking-[0.16em] text-fg-muted';
+const linkClass = 'text-sm text-fg/85 transition-colors hover:text-fg';
+
+// Privacy and Terms pages don't exist yet, so they aren't linked; add them
+// here once written (LAUNCH-AUDIT.md P0 #5).
 const Footer: FC = () => {
     return (
-        <footer className="bg-primary text-white py-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row justify-between items-start mb-24 gap-12">
-                    <div className="max-w-xs">
-                        <Link to="/" className="text-2xl font-semibold tracking-tight text-white flex items-center mb-6">
-                            FRILOGIX <span className="ml-1 w-2 h-2 bg-secondary rounded-full"></span>
+        <footer className="theme-ink">
+            <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+                <div className="grid gap-12 lg:grid-cols-12">
+                    <div className="lg:col-span-5">
+                        <Link to="/" className="inline-block">
+                            <img src="/logo-on-dark.png" alt="Frilogix" width={160} height={40} className="h-8 w-auto" loading="lazy" />
                         </Link>
-                        <p className="text-sm font-light text-secondary/80 leading-relaxed">
-                            Engineering excellence for the modern web. Sustainable, scalable software solutions.
+                        <p className="mt-6 max-w-sm text-fg-muted">
+                            Software and AI engineering for startups and scale-ups: web, mobile and LLM systems that ship.
                         </p>
+                        <a href={`mailto:${site.email}`} className="mt-6 inline-block text-accent-ink transition-colors hover:text-fg">
+                            {site.email}
+                        </a>
                     </div>
 
-                    <div className="flex gap-24">
+                    <nav aria-label="Footer" className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:col-span-7">
                         <div>
-                            <h4 className="font-mono text-xs uppercase tracking-widest text-secondary mb-8">Sitemap</h4>
-                            <ul className="space-y-4 text-sm font-light text-white/80">
-                                <li><Link to="/about" className="hover:text-white hover:underline transition-all">About</Link></li>
-                                <li><Link to="/services" className="hover:text-white hover:underline transition-all">Services</Link></li>
-                                <li><Link to="/services#intelligent-systems" className="hover:text-white hover:underline transition-all">AI Engineering</Link></li>
-                                <li><Link to="/contact" className="hover:text-white hover:underline transition-all">Contact</Link></li>
+                            <h2 className={columnTitle}>Site</h2>
+                            <ul className="space-y-3">
+                                {pages.map((page) => (
+                                    <li key={page.path}><Link to={page.path} className={linkClass}>{page.label}</Link></li>
+                                ))}
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-mono text-xs uppercase tracking-widest text-secondary mb-8">Connect</h4>
-                            <ul className="space-y-4 text-sm font-light text-white/80">
-                                <li><a href="#" className="hover:text-white hover:underline transition-all">LinkedIn</a></li>
-                                <li><a href="#" className="hover:text-white hover:underline transition-all">Twitter</a></li>
-                                <li><a href="#" className="hover:text-white hover:underline transition-all">GitHub</a></li>
+                            <h2 className={columnTitle}>Services</h2>
+                            <ul className="space-y-3">
+                                {serviceLinks.map((link) => (
+                                    <li key={link.to}><Link to={link.to} className={linkClass}>{link.label}</Link></li>
+                                ))}
                             </ul>
                         </div>
-                    </div>
+                        {site.social.length > 0 && (
+                            <div>
+                                <h2 className={columnTitle}>Elsewhere</h2>
+                                <ul className="space-y-3">
+                                    {site.social.map((link) => (
+                                        <li key={link.href}><a href={link.href} className={linkClass}>{link.label}</a></li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </nav>
                 </div>
 
-                <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center text-xs text-white/60 font-mono">
-                    <p>&copy; {new Date().getFullYear()} Frilogix Inc.</p>
-                    <div className="flex space-x-8 mt-4 md:mt-0">
-                        <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                        <a href="#" className="hover:text-white transition-colors">Terms</a>
-                    </div>
+                <div className="mt-16 flex flex-col gap-2 border-t border-line pt-8 font-mono text-xs text-fg-muted sm:flex-row sm:justify-between">
+                    <p>&copy; {new Date().getFullYear()} Frilogix</p>
+                    <p>{site.location}</p>
                 </div>
             </div>
         </footer>

@@ -12,6 +12,21 @@ const HORIZONTAL_QUERY =
     '(min-width: 1280px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) and (scripting: enabled)';
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
+// Paging feel in horizontal mode. One gesture moves at most one page, and a
+// small accidental scroll moves none.
+/** Share of a screen a scroll must travel to count as "next page". */
+const PAGE_THRESHOLD = 0.3;
+/** Cap on that distance for wheel input (px), so a mouse needs two notches rather than five. */
+const WHEEL_THRESHOLD_MAX = 200;
+/** Wheel silence (ms) that ends a gesture, so trackpad momentum can't page a second time. */
+const GESTURE_IDLE_MS = 200;
+/** After a page turn, no new swipe is recognised for this long (ms) — the page is still gliding. */
+const PAGE_COOLDOWN_MS = 700;
+/** While a gesture is below the threshold the track leans with it (px at the threshold), then springs back. */
+const PEEK_MAX = 80;
+/** Lean when pushing past the first page, where there's nowhere to go. */
+const EDGE_PEEK_MAX = 28;
+
 type ScrollState = { fromScroll?: boolean } | null;
 
 const normalizePath = (pathname: string) => pathname.replace(/\/+$/, '') || '/';
@@ -72,6 +87,8 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
 
                 // Horizontal mode: pin the viewport and move the track 1px per 1px scrolled.
                 let tween: gsap.core.Tween | null = null;
+                // The page the visitor is on (or being taken to): paging and snapping start from it.
+                let anchor = 0;
                 if (horizontal) {
                     const distance = () => track.scrollWidth - wrapper.clientWidth;
                     tween = gsap.to(track, {
@@ -85,15 +102,31 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
                             pin: true,
                             start: 'top top',
                             end: () => `+=${distance()}`,
-                            scrub: 0.6,
-                            // Every panel is exactly one viewport wide, so panel starts are evenly spaced.
-                            // No inertia: velocity-projected snapping overshoots by whole pages
-                            // after a scrollbar drag or an instant jump. Direction alone decides.
+                            scrub: 0.3,
+                            // Settles native scrolling (scrollbar drags, touch) on a whole page. Wheel
+                            // and keys page explicitly below. Every panel is one viewport wide, so
+                            // progress × last index is a position in pages.
                             snap: {
-                                snapTo: 1 / (panels.length - 1),
+                                snapTo: (progress: number) => {
+                                    const last = panels.length - 1;
+                                    const position = progress * last;
+                                    const moved = position - anchor;
+                                    // Short of the threshold: back to the starting page. Up to one
+                                    // page: the neighbour. Further (a scrollbar jump): the nearest.
+                                    const target =
+                                        Math.abs(moved) < PAGE_THRESHOLD
+                                            ? anchor
+                                            : Math.abs(moved) <= 1
+                                              ? anchor + Math.sign(moved)
+                                              : Math.round(position);
+                                    anchor = gsap.utils.clamp(0, last, target);
+                                    return anchor / last;
+                                },
+                                // No velocity projection: it overshoots by whole pages.
                                 inertia: false,
-                                duration: { min: 0.2, max: 0.6 },
-                                delay: 0.05,
+                                duration: { min: 0.3, max: 0.5 },
+                                // Wait until the hand has actually stopped, trackpad momentum included.
+                                delay: 0.25,
                                 ease: 'power2.inOut',
                             },
                             invalidateOnRefresh: true,
@@ -109,6 +142,7 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
                 };
 
                 const scrollToPanel = (panel: HTMLElement, smooth: boolean) => {
+                    if (st) anchor = Math.max(0, panels.indexOf(panel));
                     window.scrollTo({ top: scrollTopFor(panel), behavior: smooth && !reduceMotion ? 'smooth' : 'auto' });
                     if (!smooth) {
                         // Jump the track too, instead of letting the scrub glide it across every page.
@@ -156,22 +190,136 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
                 });
 
                 if (st) {
+                    const last = panels.length - 1;
                     const inTrack = () => window.scrollY >= st.start - 1 && window.scrollY <= st.end + 1;
                     const currentIndex = () => Math.round((window.scrollY - st.start) / wrapper.clientWidth);
+                    // At either end, input heading out of the track scrolls natively (on into the footer).
+                    const leavesTrack = (direction: number) =>
+                        (direction > 0 && anchor === last && window.scrollY >= st.end - 1) ||
+                        (direction < 0 && anchor === 0 && window.scrollY <= st.start + 1);
+                    const goTo = (index: number) => scrollToPanel(panels[gsap.utils.clamp(0, last, index)], true);
 
-                    // Sideways trackpad swipes (and shift+wheel) drive the track too.
-                    const onWheel = (e: WheelEvent) => {
-                        if (!inTrack() || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
-                        e.preventDefault();
-                        window.scrollBy({ top: e.deltaX * (e.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1) });
+                    // Peek: the track leans with a gesture that hasn't crossed the threshold.
+                    // It uses the CSS `translate` property, which composes with the `transform`
+                    // GSAP drives, so the two never fight.
+                    const peek = (px: number, settle: boolean) => {
+                        track.style.transition = settle
+                            ? 'translate 0.35s cubic-bezier(0.22, 1, 0.36, 1)'
+                            : 'translate 0.12s ease-out';
+                        track.style.translate = px ? `${px}px 0` : '';
                     };
-                    const onKeyDown = (e: KeyboardEvent) => {
-                        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-                        if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !inTrack()) return;
-                        if ((e.target as Element).closest('input, textarea, select, [contenteditable]')) return;
+
+                    // Wheel and trackpad: one gesture = at most one page. Travel accumulates until
+                    // it crosses the threshold; then the next page glides in and the rest of the
+                    // gesture (trackpad momentum) is ignored. The lock ends after GESTURE_IDLE_MS
+                    // of silence — or sooner, when a new swipe is detected inside the momentum.
+                    let travel = 0;
+                    let locked = false;
+                    let idleTimer = 0;
+                    let lastOutside = -Infinity;
+                    // Momentum tracking while locked. Raw trackpad deltas are noisy (wobbles,
+                    // bumps, dips mid-swipe), so a new swipe is judged on a smoothed average.
+                    let lastMagnitude = 0;
+                    let lockedAt = 0;
+                    let smoothed = 0;
+                    let lowest = Infinity;
+                    let risingRun = 0;
+                    const lock = (time: number) => {
+                        locked = true;
+                        lockedAt = time;
+                        smoothed = lastMagnitude;
+                        lowest = Infinity;
+                        risingRun = 0;
+                    };
+                    const endGesture = () => {
+                        locked = false;
+                        travel = 0;
+                        peek(0, true);
+                    };
+                    // Fingers landing on the pad again look like a sustained, strong ramp:
+                    // three rising events in a row, the smoothed speed well above its low
+                    // point, and real size. Momentum noise produces none of that together.
+                    // Never within PAGE_COOLDOWN_MS of a turn: one gesture, one page.
+                    const isNewSwipe = (magnitude: number, time: number) => {
+                        smoothed = smoothed * 0.7 + magnitude * 0.3;
+                        lowest = Math.min(lowest, smoothed);
+                        risingRun = magnitude > lastMagnitude ? risingRun + 1 : 0;
+                        if (time - lockedAt < PAGE_COOLDOWN_MS) return false;
+                        return risingRun >= 3 && magnitude >= 12 && smoothed >= lowest * 2.5;
+                    };
+                    const onWheel = (e: WheelEvent) => {
+                        if (e.ctrlKey) return; // pinch-zoom
+                        if (!inTrack()) {
+                            lastOutside = e.timeStamp;
+                            return;
+                        }
+                        const raw = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                        const unit =
+                            e.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : e.deltaMode === WheelEvent.DOM_DELTA_PAGE ? wrapper.clientHeight : 1;
+                        const delta = raw * unit;
+                        if (!delta || (!locked && leavesTrack(delta) && delta > 0)) return;
+
                         e.preventDefault();
-                        const next = gsap.utils.clamp(0, panels.length - 1, currentIndex() + (e.key === 'ArrowRight' ? 1 : -1));
-                        scrollToPanel(panels[next], true);
+                        window.clearTimeout(idleTimer);
+                        idleTimer = window.setTimeout(endGesture, GESTURE_IDLE_MS);
+                        const magnitude = Math.abs(delta);
+
+                        // A gesture that scrolled in from the footer has already done its job.
+                        if (!locked && e.timeStamp - lastOutside < GESTURE_IDLE_MS) lock(e.timeStamp);
+                        if (locked) {
+                            const fresh = isNewSwipe(magnitude, e.timeStamp);
+                            lastMagnitude = magnitude;
+                            if (!fresh) return;
+                            locked = false;
+                            travel = 0;
+                        }
+                        lastMagnitude = magnitude;
+
+                        travel += delta;
+                        const direction = Math.sign(travel);
+                        const threshold = Math.min(wrapper.clientWidth * PAGE_THRESHOLD, WHEEL_THRESHOLD_MAX);
+                        const progress = Math.min(Math.abs(travel) / threshold, 1);
+                        // Before the first page there's nowhere to go: lean a little, then spring back.
+                        if (anchor + direction < 0) {
+                            peek(EDGE_PEEK_MAX * Math.sqrt(progress), false);
+                            if (progress >= 1) lock(e.timeStamp);
+                        } else if (progress >= 1) {
+                            lock(e.timeStamp);
+                            peek(0, true);
+                            goTo(anchor + direction);
+                        } else {
+                            peek(-direction * PEEK_MAX * Math.sqrt(progress), false);
+                        }
+                    };
+
+                    // Keys page one at a time too. Left alone: typing in fields, Space on
+                    // buttons and links, and modified keys (Alt+← is browser back).
+                    const onKeyDown = (e: KeyboardEvent) => {
+                        if (e.altKey || e.ctrlKey || e.metaKey || !inTrack()) return;
+                        const target = e.target as Element;
+                        if (target.closest('input, textarea, select, [contenteditable]')) return;
+                        let step: number;
+                        switch (e.key) {
+                            case 'ArrowRight':
+                            case 'ArrowDown':
+                            case 'PageDown':
+                                step = 1;
+                                break;
+                            case 'ArrowLeft':
+                            case 'ArrowUp':
+                            case 'PageUp':
+                                step = -1;
+                                break;
+                            case ' ':
+                                if (target.closest('button, a, summary, [role="button"]')) return;
+                                step = e.shiftKey ? -1 : 1;
+                                break;
+                            default:
+                                return;
+                        }
+                        if ((e.shiftKey && e.key !== ' ') || leavesTrack(step)) return;
+                        e.preventDefault();
+                        goTo(anchor + step);
                     };
                     // Off-screen panels are only translated away, so tabbing into one must bring it into view.
                     const onFocusIn = (e: FocusEvent) => {
@@ -183,6 +331,9 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
                     window.addEventListener('keydown', onKeyDown);
                     track.addEventListener('focusin', onFocusIn);
                     cleanups.push(() => {
+                        window.clearTimeout(idleTimer);
+                        track.style.transition = '';
+                        track.style.translate = '';
                         window.removeEventListener('wheel', onWheel);
                         window.removeEventListener('keydown', onKeyDown);
                         track.removeEventListener('focusin', onFocusIn);
@@ -229,7 +380,7 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
                 ref={progressRef}
                 aria-hidden="true"
                 style={{ transform: 'scaleX(0)' }}
-                className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden h-0.5 origin-left bg-brand-dark hscroll:block"
+                className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden h-0.5 origin-left bg-accent hscroll:block"
             />
         </>
     );

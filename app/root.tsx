@@ -1,34 +1,42 @@
 import type { ReactNode } from "react";
 import {
-  Link,
   Links,
   Meta,
   Outlet,
   Scripts,
   isRouteErrorResponse,
 } from "react-router";
+import monaSans from "@fontsource-variable/mona-sans/files/mona-sans-latin-standard-normal.woff2?url";
 
 import type { Route } from "./+types/root";
 import Navbar from "~/components/Navbar";
 import Footer from "~/components/Footer";
+import { ButtonLink } from "~/components/ui/Button";
+import Eyebrow from "~/components/ui/Eyebrow";
+import "@fontsource-variable/mona-sans/standard.css";
+import "@fontsource-variable/jetbrains-mono/index.css";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
   { rel: "icon", href: "/favicon.ico", sizes: "any" },
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
-  },
+  // Self-hosted fonts; preload the Latin Mona Sans file the headings render in.
+  { rel: "preload", href: monaSans, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
 ];
 
+// Absolute origin for Open Graph URLs (see ~/lib/meta).
+export function loader({ request }: Route.LoaderArgs) {
+  return { origin: new URL(request.url).origin };
+}
+
+// The origin never changes within a session; don't refetch it after form submissions.
+export function shouldRevalidate() {
+  return false;
+}
+
+// Used only when no child route matches (the 404 page): page routes return
+// their full set through pageMeta(), which replaces this rather than merging.
 export const meta: Route.MetaFunction = () => [
-  { title: "Frilogix | Intelligent Software & AI Engineering" },
+  { title: "Frilogix | Software & AI Engineering" },
   {
     name: "description",
     content:
@@ -42,6 +50,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#f6f7f7" />
         <Meta />
         <Links />
       </head>
@@ -58,7 +67,7 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-grow">
+      <main id="main" tabIndex={-1} className="flex-grow outline-none">
         <Outlet />
       </main>
       <Footer />
@@ -85,22 +94,16 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-grow pt-40 pb-20 bg-brand-light">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-6xl md:text-8xl font-light text-brand-dark mb-10 tracking-tight">
-            {heading}
-          </h1>
-          <p className="text-2xl text-brand-gray max-w-2xl mx-auto mb-16 font-light leading-relaxed">
-            {detail}
-          </p>
-          <Link
-            to="/"
-            className="inline-block px-12 py-5 bg-primary text-white font-medium text-lg rounded-sm shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all"
-          >
+      <main id="main" tabIndex={-1} className="flex-grow outline-none">
+        <div className="mx-auto max-w-7xl px-4 pb-24 pt-40 sm:px-6 lg:px-8">
+          <Eyebrow>{isRouteErrorResponse(error) ? `Error ${error.status}` : "Error"}</Eyebrow>
+          <h1 className="mt-4 font-wide text-display font-semibold">{heading}</h1>
+          <p className="mt-6 max-w-xl text-lede text-fg-muted">{detail}</p>
+          <ButtonLink to="/" size="lg" arrow className="mt-10">
             Back to home
-          </Link>
+          </ButtonLink>
           {stack ? (
-            <pre className="mt-16 w-full overflow-x-auto text-left text-xs font-mono bg-surface border border-secondary/20 p-6 rounded-sm">
+            <pre className="mt-16 w-full overflow-x-auto rounded-lg border border-line bg-surface p-6 text-left font-mono text-xs">
               <code>{stack}</code>
             </pre>
           ) : null}
