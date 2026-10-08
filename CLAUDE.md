@@ -26,6 +26,10 @@ document, in that order. On desktop they sit side by side and vertical scrolling
 horizontally; see "One-page layout" below. Each still has its own URL (`/`, `/services`,
 `/work`, `/company`, `/contact`).
 
+`/privacy` (`routes/privacy.tsx`) is a normal standalone page outside the one-page scroll:
+it isn't in `pages`, so it isn't in the horizontal track or the page counter, and it is
+linked from the footer. Its copy is `app/content/privacy.ts`.
+
 Three routes only redirect (301), preserving inbound links: `/ai-engineering` →
 `/services#intelligent-systems` (the AI page was merged into Services), `/case-studies` →
 `/work` and `/about` → `/company` (renamed). Don't re-add any of them to the nav.
@@ -252,6 +256,19 @@ with Nodemailer when the `SMTP_*` and `CONTACT_*` env vars are set. Without them
 the inquiry to the server console, and **production returns an error that tells the visitor to
 email instead** — the form never claims a message was sent when it wasn't.
 
+### Cookie consent and analytics
+
+Google Analytics 4 (`site.gaMeasurementId`) runs **only after the visitor accepts** in the
+cookie bar (`~/components/CookieConsent`, rendered in root `Layout`). Before that no Google
+script loads and no cookie is set; Reject is as prominent as Accept; "Cookie settings" in the
+footer (and on /privacy) reopens the bar; withdrawing deletes the `_ga` cookies. The choice is
+in localStorage (`~/lib/consent`), expires after 6 months, and resets when `POLICY_VERSION`
+changes: **bump it whenever cookies or analytics change**, and update `app/content/privacy.ts`
+(processing activities, cookie table, `lastUpdated`) to match. GA loads only on the
+production hostnames listed in `~/components/GoogleAnalytics`. Never add a tracker, embed or
+third-party script without putting it behind consent (or documenting why it's strictly
+necessary) and listing it in the privacy policy.
+
 **The contact email never ships as text.** It is drawn as SVG outlines by
 `~/components/ui/EmailAddress` from `app/content/email-glyphs.ts`, which
 `scripts/email-svg.py <address>` generates (Mona Sans 500). Don't add the address to any
@@ -272,14 +289,15 @@ See `LAUNCH-AUDIT.md` for the full pre-launch audit. The load-bearing items:
 - **Email isn't configured.** Set the `SMTP_*` / `CONTACT_*` and `TURNSTILE_*` env vars in
   Vercel, or the form reports failure.
 - Vantuu's `url` stays `null` until vantuu.com is live.
-- Privacy and Terms pages don't exist; they're needed once the form collects data, and should
-  be linked from the footer.
+- Terms page doesn't exist. The privacy policy has DRAFT points to confirm (retention
+  period, email provider) and should get a legal review.
 - The contact mailbox is unconfirmed (check it receives mail), and the social links in
   `app/content/site.ts` are placeholders; `bookingUrl` is unset.
 - Every URL serves the same one-page document, so search engines will likely treat
   `/services`, `/company`, etc. as near-duplicates of `/`; each now has its own canonical tag.
   No `sitemap.xml`, `robots.txt` or JSON-LD yet.
-- No analytics installed. No SVG logo or SVG favicon (needs a vector wordmark).
+- No SVG logo or SVG favicon (needs a vector wordmark). The favicon set (`favicon.ico`,
+  `icon-192/512.png`, `apple-touch-icon.png`) is rendered from `public/hero-shape.png`.
 
 ## Repo artifacts to ignore
 

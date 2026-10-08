@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { Link } from 'react-router';
 import EmailAddress from '~/components/ui/EmailAddress';
 import { pages, site } from '~/content/site';
+import { openConsentSettings } from '~/lib/consent';
 
 const serviceLinks = [
     { label: 'All services', to: '/services' },
@@ -12,8 +13,6 @@ const serviceLinks = [
 const columnTitle = 'mb-5 font-mono text-xs font-medium uppercase tracking-[0.16em] text-fg-muted';
 const linkClass = 'text-sm text-fg/85 transition-colors hover:text-fg';
 
-// Privacy and Terms pages don't exist yet, so they aren't linked; add them
-// here once written (LAUNCH-AUDIT.md P0 #5).
 const Footer: FC = () => {
     return (
         <footer className="theme-ink">
@@ -63,7 +62,13 @@ const Footer: FC = () => {
 
                 <div className="mt-16 flex flex-col gap-2 border-t border-line pt-8 font-mono text-xs text-fg-muted sm:flex-row sm:justify-between">
                     <p>&copy; {new Date().getFullYear()} {site.legalName}</p>
-                    <p>{site.location}</p>
+                    <div className="flex flex-wrap gap-x-6 gap-y-2">
+                        <Link to="/privacy" className="transition-colors hover:text-fg">Privacy policy</Link>
+                        <button type="button" onClick={openConsentSettings} className="text-left transition-colors hover:text-fg">
+                            Cookie settings
+                        </button>
+                        <span>{site.location}</span>
+                    </div>
                 </div>
             </div>
         </footer>

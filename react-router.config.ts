@@ -9,7 +9,7 @@ export default {
   // Content only changes on deploy, so the pages are rendered to static HTML at
   // build time and Vercel's CDN serves them until the next deploy. The /contact
   // form action and the redirect routes still run as a server function.
-  prerender: pages.map((page) => page.path),
+  prerender: [...pages.map((page) => page.path), "/privacy"],
   // Ship the whole (tiny) route manifest in the page instead of fetching
   // /__manifest from the server function as pages scroll into view, so moving
   // between pages never needs the server.

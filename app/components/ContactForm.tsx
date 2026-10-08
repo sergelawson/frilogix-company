@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FocusEvent, type FormEvent } from 'react';
-import { useFetcher } from 'react-router';
+import { Link, useFetcher } from 'react-router';
 import TurnstileWidget from '~/components/TurnstileWidget';
 import { buttonClass } from '~/components/ui/Button';
 import EmailAddress from '~/components/ui/EmailAddress';
@@ -201,6 +201,13 @@ export default function ContactForm() {
                 </button>
                 <p className="text-sm text-fg-muted">We reply within 24 hours.</p>
             </div>
+            <p className="mt-4 text-xs text-fg-muted">
+                We use these details only to reply to you; the form is protected by Cloudflare Turnstile. See our{' '}
+                <Link to="/privacy" className="text-accent-ink underline underline-offset-2 hover:text-fg">
+                    privacy policy
+                </Link>
+                .
+            </p>
         </fetcher.Form>
     );
 }

@@ -11,6 +11,8 @@ import monaSans from "@fontsource-variable/mona-sans/files/mona-sans-latin-stand
 import type { Route } from "./+types/root";
 import Navbar from "~/components/Navbar";
 import Footer from "~/components/Footer";
+import GoogleAnalytics from "~/components/GoogleAnalytics";
+import CookieConsent from "~/components/CookieConsent";
 import { ButtonLink } from "~/components/ui/Button";
 import Eyebrow from "~/components/ui/Eyebrow";
 import "@fontsource-variable/mona-sans/standard.css";
@@ -18,7 +20,11 @@ import "@fontsource-variable/jetbrains-mono/index.css";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
-  { rel: "icon", href: "/favicon.ico", sizes: "any" },
+  // The X mark from the logo (public/hero-shape.png), at 16/32/48 in the .ico.
+  { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+  { rel: "icon", href: "/icon-192.png", type: "image/png", sizes: "192x192" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+  { rel: "manifest", href: "/site.webmanifest" },
   // Self-hosted fonts; preload the Latin Mona Sans file the headings render in.
   { rel: "preload", href: monaSans, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
 ];
@@ -46,6 +52,9 @@ export function Layout({ children }: { children: ReactNode }) {
       </head>
       <body className="font-sans overflow-x-hidden min-h-screen">
         {children}
+        {/* Analytics loads only after consent from the cookie bar. */}
+        <CookieConsent />
+        <GoogleAnalytics />
         {/* No <ScrollRestoration />: HorizontalPages owns scroll position for the one-page site. */}
         <Scripts />
       </body>

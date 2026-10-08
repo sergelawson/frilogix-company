@@ -16,6 +16,9 @@ export const site = {
     // Cloudflare Turnstile site key for the contact form (public by design; the
     // secret is TURNSTILE_SECRET on the server). Widget "frilogix-contact".
     turnstileSitekey: '0x4AAAAAAFRV2shzbxSknCfk',
+    // Google Analytics 4 Measurement ID ("G-…"), from GA → Admin → Data streams.
+    // While null, no analytics code ships (~/components/GoogleAnalytics).
+    gaMeasurementId: 'G-ZPGVV8B6RW' as string | null,
     // TODO: add LinkedIn / GitHub / X profile URLs. The footer only lists entries present here.
     social: [] as { label: string; href: string }[],
 };
