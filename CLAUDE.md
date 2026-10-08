@@ -296,7 +296,8 @@ See `LAUNCH-AUDIT.md` for the full pre-launch audit. The load-bearing items:
 - Every URL serves the same one-page document, so search engines will likely treat
   `/services`, `/company`, etc. as near-duplicates of `/`; each now has its own canonical tag.
   No `sitemap.xml`, `robots.txt` or JSON-LD yet.
-- No SVG logo or SVG favicon (needs a vector wordmark).
+- No SVG logo or SVG favicon (needs a vector wordmark). The favicon set (`favicon.ico`,
+  `icon-192/512.png`, `apple-touch-icon.png`) is rendered from `public/hero-shape.png`.
 
 ## Repo artifacts to ignore
 
