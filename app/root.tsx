@@ -11,6 +11,7 @@ import monaSans from "@fontsource-variable/mona-sans/files/mona-sans-latin-stand
 import type { Route } from "./+types/root";
 import Navbar from "~/components/Navbar";
 import Footer from "~/components/Footer";
+import GoogleAnalytics from "~/components/GoogleAnalytics";
 import { ButtonLink } from "~/components/ui/Button";
 import Eyebrow from "~/components/ui/Eyebrow";
 import "@fontsource-variable/mona-sans/standard.css";
@@ -43,6 +44,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="theme-color" content="#f6f7f7" />
         <Meta />
         <Links />
+        <GoogleAnalytics />
       </head>
       <body className="font-sans overflow-x-hidden min-h-screen">
         {children}
