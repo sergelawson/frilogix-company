@@ -18,7 +18,7 @@ const sizes: Record<Size, string> = {
 
 /** Classes for anything that should look like a button — use on a native <button> directly. */
 export function buttonClass(variant: Variant = 'primary', size: Size = 'md') {
-    return `group inline-flex items-center justify-center gap-2 rounded-full font-medium whitespace-nowrap transition-colors duration-200 ease-out disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${sizes[size]}`;
+    return `group inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap transition-colors duration-200 ease-out disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${sizes[size]}`;
 }
 
 type ButtonLinkProps = {

@@ -1,88 +1,93 @@
 import { Page, Panel, panelInner } from '~/components/Panel';
-import { BookCallButton } from '~/components/ui/Button';
-import Eyebrow from '~/components/ui/Eyebrow';
+import ArrowLink from '~/components/ui/ArrowLink';
+import { ButtonLink } from '~/components/ui/Button';
 import Placeholder, { showPlaceholders } from '~/components/ui/Placeholder';
-import { caseStudies, workIntro, type CaseStudy } from '~/content/work';
+import { products, type Product } from '~/content/work';
 
-/** One case study per panel. Without data (dev only) it draws the empty template. */
-function CaseStudyPanel({ study, id }: { study?: CaseStudy; id: string }) {
+/** A product we're building: copy and a link on one side, a screenshot on the other. */
+function ProductPanel({ product }: { product: Product }) {
+    // Without a screenshot (in production) the copy takes the whole row.
+    const hasVisual = product.image !== null || showPlaceholders;
     return (
-        <Panel id={id} className="theme-ink">
+        <Panel id={product.slug} className={product.ink ? 'theme-ink' : ''}>
             <div className={panelInner}>
-                <div className="gsap-reveal grid gap-12 lg:grid-cols-12 lg:gap-16">
-                    <div className="lg:col-span-7">
-                        {study ? (
-                            <>
-                                <Eyebrow>{study.client}</Eyebrow>
-                                <h2 className="mt-4 font-wide text-h1 font-semibold text-balance">{study.title}</h2>
-                            </>
-                        ) : (
-                            <>
-                                <Placeholder label="Client type, e.g. Series A fintech" className="w-64" />
-                                <Placeholder label="Case study title" className="mt-4 h-24" />
-                            </>
+                <div className="gsap-reveal">
+                    <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
+                        <div className={hasVisual ? 'lg:col-span-5' : 'lg:col-span-8'}>
+                            {/* The logo carries the name; category and status follow it as ruled labels. */}
+                            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+                                <img
+                                    src={product.logo.src}
+                                    alt={product.name}
+                                    width={product.logo.width}
+                                    height={product.logo.height}
+                                    className="h-7 w-auto"
+                                />
+                                <div className="flex items-center gap-4">
+                                    {/* On phones the labels sit under the logo, so the first needs no rule. */}
+                                    <Label className="sm:border-l sm:pl-4">{product.category}</Label>
+                                    <Label className="border-l pl-4">{product.status}</Label>
+                                </div>
+                            </div>
+                            <h2 className="mt-5 font-wide text-h2 font-semibold text-balance">{product.title}</h2>
+                            <p className="mt-5 leading-relaxed text-pretty text-fg-muted">{product.summary}</p>
+                            {product.url ? (
+                                <ButtonLink to={product.url} size="lg" arrow className="mt-8">
+                                    Visit {new URL(product.url).host}
+                                </ButtonLink>
+                            ) : (
+                                <ArrowLink to="/contact" className="mt-8">
+                                    Ask us about {product.name}
+                                </ArrowLink>
+                            )}
+                        </div>
+                        {hasVisual && (
+                            <div className="lg:col-span-7">
+                                {product.image ? (
+                                    <img
+                                        src={product.image.src}
+                                        alt={product.image.alt}
+                                        width={product.image.width}
+                                        height={product.image.height}
+                                        loading="lazy"
+                                        className="w-full border border-line hscroll:ml-auto hscroll:max-h-[52vh] hscroll:w-auto"
+                                    />
+                                ) : (
+                                    <Placeholder label="Product screenshot" className="aspect-[1200/726]" />
+                                )}
+                            </div>
                         )}
-                        <div className="mt-10 grid gap-8 border-t border-line pt-8 sm:grid-cols-2">
-                            <div>
-                                <h3 className="font-mono text-xs uppercase tracking-[0.16em] text-fg-muted">Problem</h3>
-                                {study ? <p className="mt-3 leading-relaxed">{study.problem}</p> : <Placeholder label="What was broken or missing" className="mt-3 h-24" />}
-                            </div>
-                            <div>
-                                <h3 className="font-mono text-xs uppercase tracking-[0.16em] text-fg-muted">Approach</h3>
-                                {study ? <p className="mt-3 leading-relaxed">{study.approach}</p> : <Placeholder label="What we built and how" className="mt-3 h-24" />}
-                            </div>
-                        </div>
                     </div>
-                    <div className="flex flex-col justify-end lg:col-span-5">
-                        <div className="rounded-2xl border border-line bg-surface p-8">
-                            <h3 className="font-mono text-xs uppercase tracking-[0.16em] text-fg-muted">Outcome</h3>
-                            {study ? (
-                                <>
-                                    <p className="mt-4 font-wide text-display font-semibold text-accent-ink">{study.outcome.value}</p>
-                                    <p className="mt-3 text-fg-muted">{study.outcome.label}</p>
-                                </>
-                            ) : (
-                                <Placeholder label="Outcome with a number" className="mt-4 h-32" />
-                            )}
-                        </div>
-                        <ul className="mt-6 flex flex-wrap gap-1.5">
-                            {study ? (
-                                study.stack.map((tech) => (
-                                    <li key={tech} className="rounded-full border border-line px-2.5 py-1 text-xs font-medium text-fg-muted">
-                                        {tech}
-                                    </li>
-                                ))
-                            ) : (
-                                <li><Placeholder label="Stack" className="w-40" /></li>
-                            )}
+                    {product.highlights.length > 0 ? (
+                        <ul className="mt-10 grid gap-x-8 gap-y-6 border-t border-line pt-6 sm:grid-cols-2 lg:grid-cols-4">
+                            {product.highlights.map((item) => (
+                                <li key={item.title}>
+                                    <h3 className="text-sm font-semibold">{item.title}</h3>
+                                    <p className="mt-1 text-sm text-fg-muted">{item.desc}</p>
+                                </li>
+                            ))}
                         </ul>
-                    </div>
+                    ) : (
+                        <Placeholder label="Highlights: what it does, in four short lines" className="mt-10 h-20" />
+                    )}
                 </div>
             </div>
         </Panel>
     );
 }
 
+function Label({ children, className }: { children: string; className: string }) {
+    return <span className={`whitespace-nowrap border-line-strong font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-fg-muted ${className}`}>{children}</span>;
+}
+
 export default function WorkSection() {
     return (
         <Page path="/work" label="Work">
-            {caseStudies.length > 0 ? (
-                caseStudies.map((study) => <CaseStudyPanel key={study.slug} id={study.slug} study={study} />)
-            ) : (
-                <>
-                    <Panel id="work" className="theme-ink">
-                        <div className={panelInner}>
-                            <div className="gsap-reveal max-w-3xl">
-                                <Eyebrow>{workIntro.eyebrow}</Eyebrow>
-                                <h2 className="mt-4 font-wide text-h1 font-semibold text-balance">{workIntro.title}</h2>
-                                <p className="mt-6 max-w-2xl text-lede text-pretty text-fg-muted">{workIntro.lede}</p>
-                                <BookCallButton size="lg" className="mt-10" />
-                            </div>
-                        </div>
-                    </Panel>
-                    {showPlaceholders && <CaseStudyPanel id="case-study-template" />}
-                </>
-            )}
+            {/* No intro panel: Home's products panel already introduces both and links to each. */}
+            {/* The page's one ink panel is the product whose logo is drawn for it. */}
+            {products.map((product) => (
+                <ProductPanel key={product.slug} product={product} />
+            ))}
         </Page>
     );
 }

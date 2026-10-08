@@ -36,7 +36,7 @@ const normalizePath = (pathname: string) => pathname.replace(/\/+$/, '') || '/';
  * why root.tsx has no <ScrollRestoration />:
  *
  * - The URL picks what to show on load, on link clicks, and on back/forward:
- *   `/about` shows the About page, `/services#intelligent-systems` that panel.
+ *   `/company` shows the Company page, `/services#intelligent-systems` that panel.
  * - Scrolling rewrites the URL (replace, not push) to the page in view, so the
  *   navbar's active link and the document title follow along.
  * - `.gsap-reveal` elements inside fade in as they enter the viewport.

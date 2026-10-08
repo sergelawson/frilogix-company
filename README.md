@@ -62,7 +62,7 @@ environment variables on the server:
 | Variable | Value |
 |---|---|
 | `RESEND_API_KEY` | A Resend API key |
-| `CONTACT_TO_EMAIL` | Where inquiries go, e.g. `hello@frilogix.com` |
+| `CONTACT_TO_EMAIL` | Where inquiries go (the same mailbox `scripts/email-svg.py` draws) |
 | `CONTACT_FROM_EMAIL` | Sender on a domain verified in Resend, e.g. `Frilogix <website@frilogix.com>` |
 
 Without them, `yarn dev` logs inquiries to the server console, and a production

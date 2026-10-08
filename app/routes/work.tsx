@@ -1,16 +1,15 @@
 import type { Route } from './+types/work';
 import { pageMeta } from '~/lib/meta';
-import { caseStudies } from '~/content/work';
+import { products } from '~/content/work';
 
-export const meta: Route.MetaFunction = ({ matches }) =>
+export const meta: Route.MetaFunction = () =>
     pageMeta({
-        title: 'Work — Case Studies | Frilogix',
+        title: 'Work — Uitiful & Vantuu | Frilogix',
         description:
-            'Case studies from Frilogix: the problem, the approach and the outcome of web, mobile and AI engineering projects with startups and enterprises.',
+            'What Frilogix is building: Uitiful, an agentic design tool that ships to web, iOS and Android, and Vantuu, an AI-native ecommerce shop builder.',
         path: '/work',
-        matches,
-        // A thin "being written up" page stays out of the index until real case studies exist.
-        noindex: caseStudies.length === 0,
+        // A page with nothing on it stays out of the index.
+        noindex: products.length === 0,
     });
 
 // Content lives in ~/sections/WorkSection, rendered by the one-page layout

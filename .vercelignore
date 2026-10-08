@@ -1,0 +1,11 @@
+# Never upload local secrets or build output with `vercel deploy`.
+.env*
+.vercel
+.claude
+build
+.react-router
+node_modules
+# Not needed to build the site.
+docs
+assets
+scripts

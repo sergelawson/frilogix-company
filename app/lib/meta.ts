@@ -1,31 +1,29 @@
 import type { MetaDescriptor } from 'react-router';
-
-type Match = { id: string; data?: unknown } | undefined;
+import { site } from '~/content/site';
 
 /**
  * The full meta set for one page. React Router renders only the deepest
  * route's `meta` — nothing is merged from root — so every route returns its
- * complete set from here. The root loader supplies the origin, because Open
- * Graph and Twitter require absolute URLs.
+ * complete set from here. Absolute URLs use the production origin (`site.url`):
+ * pages are prerendered, so there's no request to read it from.
  */
 export function pageMeta({
     title,
     description,
     path,
-    matches,
     noindex = false,
 }: {
     title: string;
     description: string;
     path: string;
-    matches: ReadonlyArray<Match>;
     noindex?: boolean;
 }): MetaDescriptor[] {
-    const origin = (matches.find((match) => match?.id === 'root')?.data as { origin?: string } | undefined)?.origin ?? '';
+    const origin = site.url;
     const image = `${origin}/og.png`;
     return [
         { title },
         { name: 'description', content: description },
+        { tagName: 'link', rel: 'canonical', href: origin + path },
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'Frilogix' },
         { property: 'og:title', content: title },

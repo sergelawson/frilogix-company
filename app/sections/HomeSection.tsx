@@ -1,13 +1,14 @@
+import { Link } from 'react-router';
 import ImageParticles from '~/components/ImageParticles';
 import { Page, Panel, panelInner } from '~/components/Panel';
 import { BookCallButton, ButtonLink } from '~/components/ui/Button';
 import Eyebrow from '~/components/ui/Eyebrow';
 import SectionHeader from '~/components/ui/SectionHeader';
-import Placeholder, { showPlaceholders } from '~/components/ui/Placeholder';
 import { ArrowRight } from '~/components/ui/icons';
-import { hero, proof } from '~/content/home';
+import { hero, productsIntro } from '~/content/home';
+import { products } from '~/content/work';
 
-const hasProof = proof.logos.length > 0 || proof.metrics.length > 0;
+const pad = (n: number) => String(n).padStart(2, '0');
 
 export default function HomeSection() {
     return (
@@ -45,54 +46,41 @@ export default function HomeSection() {
                 </div>
             </Panel>
 
-            {(hasProof || showPlaceholders) && (
-                <Panel id="proof" className="theme-ink">
-                    <div className={panelInner}>
-                        <SectionHeader
-                            eyebrow="Proof"
-                            title="Teams we've shipped with."
-                            lede="Startups and scale-ups building web, mobile and AI products."
-                        />
-                        <div className="gsap-reveal mt-12 hscroll:mt-10">
-                            <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                                {proof.logos.length > 0
-                                    ? proof.logos.map((logo) => (
-                                          <li key={logo.name} className="flex h-20 items-center justify-center rounded-xl border border-line px-4">
-                                              {/* Shown as monochrome white on the ink panel. */}
-                                              <img src={logo.src} alt={logo.name} className="max-h-8 w-auto opacity-80 brightness-0 invert" loading="lazy" />
-                                          </li>
-                                      ))
-                                    : ['a', 'b', 'c', 'd', 'e', 'f'].map((slot) => (
-                                          <li key={slot}>
-                                              <Placeholder label="Client logo" className="h-20" />
-                                          </li>
-                                      ))}
-                            </ul>
-                            <dl className="mt-10 grid gap-8 border-t border-line pt-8 sm:grid-cols-3">
-                                {proof.metrics.length > 0
-                                    ? proof.metrics.map((metric) => (
-                                          <div key={metric.label}>
-                                              <dt className="sr-only">{metric.label}</dt>
-                                              <dd className="font-wide text-h1 font-semibold">{metric.value}</dd>
-                                              <dd className="mt-2 text-fg-muted">{metric.label}</dd>
-                                          </div>
-                                      ))
-                                    : ['a', 'b', 'c'].map((slot) => (
-                                          <div key={slot}>
-                                              <Placeholder label="Hard number + what it measured" className="h-28" />
-                                          </div>
-                                      ))}
-                            </dl>
-                            {!hasProof && (
-                                <Placeholder
-                                    label="Dev only: this panel is hidden in production until app/content/home.ts has real proof"
-                                    className="mt-8 border-none"
-                                />
-                            )}
-                        </div>
-                    </div>
-                </Panel>
-            )}
+            {/* Frilogix is new: its own products are the proof. Each links to its Work panel. */}
+            <Panel id="products">
+                <div className={panelInner}>
+                    <SectionHeader {...productsIntro} />
+                    <ul className="gsap-reveal mt-12 grid gap-x-12 gap-y-12 md:grid-cols-2 hscroll:mt-10">
+                        {products.map((product, i) => (
+                            <li key={product.slug} className="border-t border-line-strong pt-5">
+                                <Link to={`/work#${product.slug}`} className="group block">
+                                    <p className="flex items-baseline justify-between gap-4 font-mono text-[0.6875rem] uppercase tracking-[0.14em]">
+                                        <span className="text-accent-ink">{pad(i + 1)}</span>
+                                        <span className="text-right text-fg-muted">
+                                            {product.category} · {product.status}
+                                        </span>
+                                    </p>
+                                    {product.image && (
+                                        <img
+                                            src={product.image.src}
+                                            alt={product.image.alt}
+                                            width={product.image.width}
+                                            height={product.image.height}
+                                            loading="lazy"
+                                            className="mt-5 aspect-[16/9] w-full border border-line object-cover object-top hscroll:aspect-auto hscroll:h-[32vh]"
+                                        />
+                                    )}
+                                    <h3 className="mt-5 font-wide text-h2 font-semibold">
+                                        {product.name}
+                                        <ArrowRight className="ml-[0.3em] inline size-[0.6em] align-baseline text-accent transition-transform duration-200 ease-out group-hover:translate-x-1.5" />
+                                    </h3>
+                                    <p className="mt-2 text-fg-muted">{product.title}</p>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </Panel>
         </Page>
     );
 }

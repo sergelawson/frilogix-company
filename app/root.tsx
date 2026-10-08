@@ -23,16 +23,6 @@ export const links: Route.LinksFunction = () => [
   { rel: "preload", href: monaSans, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
 ];
 
-// Absolute origin for Open Graph URLs (see ~/lib/meta).
-export function loader({ request }: Route.LoaderArgs) {
-  return { origin: new URL(request.url).origin };
-}
-
-// The origin never changes within a session; don't refetch it after form submissions.
-export function shouldRevalidate() {
-  return false;
-}
-
 // Used only when no child route matches (the 404 page): page routes return
 // their full set through pageMeta(), which replaces this rather than merging.
 export const meta: Route.MetaFunction = () => [
@@ -103,7 +93,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
             Back to home
           </ButtonLink>
           {stack ? (
-            <pre className="mt-16 w-full overflow-x-auto rounded-lg border border-line bg-surface p-6 text-left font-mono text-xs">
+            <pre className="mt-16 w-full overflow-x-auto border border-line bg-surface p-6 text-left font-mono text-xs">
               <code>{stack}</code>
             </pre>
           ) : null}

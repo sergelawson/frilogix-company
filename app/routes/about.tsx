@@ -1,17 +1,9 @@
-import type { Route } from './+types/about';
-import { pageMeta } from '~/lib/meta';
+import { redirect } from 'react-router';
 
-export const meta: Route.MetaFunction = ({ matches }) =>
-    pageMeta({
-        title: 'About Frilogix — Software & AI Engineering Team',
-        description:
-            'Frilogix bridges high-level business strategy and deep technical execution. A remote-first team of engineers, designers, and AI researchers building production software.',
-        path: '/about',
-        matches,
-    });
-
-// Content lives in ~/sections/AboutSection, rendered by the one-page layout
-// (routes/site.tsx). This route only supplies the URL and its meta.
-export default function About() {
-    return null;
+/**
+ * "About" was renamed "Company" (/company). This route only 301s old links
+ * and indexed URLs to the new location.
+ */
+export function loader() {
+    return redirect('/company', 301);
 }
