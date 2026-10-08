@@ -1,24 +1,30 @@
+import nodemailer from 'nodemailer';
 import type { Inquiry } from './inquiry';
 
 type SendResult = { ok: true; delivered: 'sent' | 'logged' } | { ok: false; reason: string };
 
 /**
- * Emails an inquiry through Resend's REST API. Needs RESEND_API_KEY,
- * CONTACT_TO_EMAIL and CONTACT_FROM_EMAIL (a sender on a domain verified in
- * Resend). Without them, dev logs the inquiry to the server console and
- * production reports a failure — it never pretends a message was sent.
+ * Emails an inquiry over SMTP (Nodemailer). Needs SMTP_HOST, SMTP_PORT
+ * (465 = implicit TLS, otherwise STARTTLS, usually 587), SMTP_USER, SMTP_PASS,
+ * CONTACT_TO_EMAIL and CONTACT_FROM_EMAIL (an address the SMTP account may
+ * send as, on a domain with SPF/DKIM). Without them, dev logs the inquiry to
+ * the server console and production reports a failure — it never pretends a
+ * message was sent.
  */
 export async function sendInquiry(inquiry: Inquiry): Promise<SendResult> {
-    const apiKey = process.env.RESEND_API_KEY;
+    const host = process.env.SMTP_HOST;
+    const port = Number(process.env.SMTP_PORT || 587);
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
     const to = process.env.CONTACT_TO_EMAIL;
     const from = process.env.CONTACT_FROM_EMAIL;
 
-    if (!apiKey || !to || !from) {
+    if (!host || !user || !pass || !to || !from) {
         if (import.meta.env.DEV) {
             console.info('[contact] Email is not configured; inquiry received:', inquiry);
             return { ok: true, delivered: 'logged' };
         }
-        return { ok: false, reason: 'email not configured (RESEND_API_KEY, CONTACT_TO_EMAIL, CONTACT_FROM_EMAIL)' };
+        return { ok: false, reason: 'email not configured (SMTP_HOST, SMTP_USER, SMTP_PASS, CONTACT_TO_EMAIL, CONTACT_FROM_EMAIL)' };
     }
 
     const text = [
@@ -31,20 +37,30 @@ export async function sendInquiry(inquiry: Inquiry): Promise<SendResult> {
         inquiry.details,
     ].join('\n');
 
+    // One connection per submission: serverless functions don't keep a pool alive.
+    const transport = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        requireTLS: port !== 465,
+        auth: { user, pass },
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 15_000,
+    });
+
     try {
-        const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                from,
-                to: [to],
-                reply_to: inquiry.email,
-                subject: `New inquiry from ${inquiry.name}`,
-                text,
-            }),
+        await transport.sendMail({
+            from,
+            to,
+            replyTo: { name: inquiry.name, address: inquiry.email },
+            subject: `New inquiry from ${inquiry.name}`,
+            text,
         });
-        return response.ok ? { ok: true, delivered: 'sent' } : { ok: false, reason: `Resend responded ${response.status}` };
+        return { ok: true, delivered: 'sent' };
     } catch (error) {
         return { ok: false, reason: error instanceof Error ? error.message : String(error) };
+    } finally {
+        transport.close();
     }
 }

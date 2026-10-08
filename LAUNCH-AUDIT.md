@@ -94,7 +94,7 @@ The site collects name, email, company, and project details. A privacy policy is
 
 ### 6. Unverified business identity
 
-`hello@frilogix.com` and "San Francisco, CA" (`app/contact/page.tsx:30-34`) are placeholders. Confirm the mailbox actually receives mail, and either commit to the address or drop it. No phone, no company entity, no registration number.
+The contact address and "San Francisco, CA" (`app/contact/page.tsx:30-34`) are placeholders. Confirm the mailbox actually receives mail, and either commit to the address or drop it. No phone, no company entity, no registration number.
 
 ---
 

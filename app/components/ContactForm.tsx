@@ -1,29 +1,59 @@
-import { useState, type FocusEvent, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FocusEvent, type FormEvent } from 'react';
 import { useFetcher } from 'react-router';
+import TurnstileWidget from '~/components/TurnstileWidget';
 import { buttonClass } from '~/components/ui/Button';
+import EmailAddress from '~/components/ui/EmailAddress';
 import { site } from '~/content/site';
 import { validateField, validateInquiry, readInquiry, type InquiryErrors, type InquiryField } from '~/lib/inquiry';
 import type { action } from '~/routes/contact';
 
 const inputClass =
-    'w-full rounded-lg border border-line-strong bg-surface px-4 py-3 text-base text-fg placeholder:text-fg-muted/70 transition-[border-color,box-shadow] duration-200 focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/15 aria-[invalid=true]:border-danger hscroll:py-2.5';
+    'w-full border border-line-strong bg-surface px-4 py-3 text-base text-fg placeholder:text-fg-muted/70 transition-[border-color,box-shadow] duration-200 focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/15 aria-[invalid=true]:border-danger hscroll:py-2.5';
 const labelClass = 'mb-2 block text-sm font-medium';
 
 /**
  * Posts to the /contact route action through a fetcher, so submitting doesn't
  * navigate away from the one-page site. Validation runs on blur and on submit
- * here, and again on the server.
+ * here, and again on the server. Cloudflare Turnstile guards the submit: the
+ * token it issues is checked by the /contact action and is single-use, so the
+ * widget resets after every completed request.
  */
 export default function ContactForm() {
     const fetcher = useFetcher<typeof action>();
     const [errors, setErrors] = useState<InquiryErrors>({});
     const [dismissed, setDismissed] = useState<unknown>(null);
+    const formRef = useRef<HTMLFormElement>(null);
+    const [token, setToken] = useState<string | null>(null);
+    const [waiting, setWaiting] = useState(false); // submitted before Turnstile issued a token
+    const [checkFailed, setCheckFailed] = useState(false);
+    const [resetKey, setResetKey] = useState(0);
 
     const result = fetcher.data;
     const sending = fetcher.state !== 'idle';
     const sent = result?.ok && result !== dismissed;
     const serverErrors: InquiryErrors = result && !result.ok && 'errors' in result ? result.errors : {};
     const formError = result && !result.ok && 'formError' in result;
+    const verifyError = result && !result.ok && 'verifyError' in result;
+
+    // Each completed request spent the token: get a fresh one for the next try.
+    const wasSending = useRef(false);
+    useEffect(() => {
+        if (wasSending.current && !sending) setResetKey((key) => key + 1);
+        wasSending.current = sending;
+    }, [sending]);
+
+    const handleToken = (next: string | null) => {
+        setToken(next);
+        if (next) setCheckFailed(false);
+        if (next && waiting && formRef.current) {
+            setWaiting(false);
+            fetcher.submit(formRef.current);
+        }
+    };
+    const handleCheckError = () => {
+        setWaiting(false);
+        setCheckFailed(true);
+    };
 
     const handleBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const field = e.target.name as InquiryField;
@@ -38,17 +68,22 @@ export default function ContactForm() {
         if (first) {
             e.preventDefault();
             e.currentTarget.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
+            return;
+        }
+        // No token yet (the check is still running, or waiting on a challenge):
+        // hold the submission and send it as soon as the token arrives.
+        if (!token) {
+            e.preventDefault();
+            if (!checkFailed) setWaiting(true);
         }
     };
 
     if (sent) {
         return (
-            <div role="status" className="flex min-h-[22rem] flex-col items-start justify-center rounded-2xl border border-line bg-surface p-8 shadow-card">
-                <span className="flex size-12 items-center justify-center rounded-full bg-accent/10 text-accent-ink">
-                    <svg className="size-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m5 13 4 4L19 7" />
-                    </svg>
-                </span>
+            <div role="status" className="flex min-h-[22rem] flex-col items-start justify-center border-t border-line-strong pt-8">
+                <svg className="size-8 text-accent-ink" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="square" d="m5 13 4 4L19 7" />
+                </svg>
                 <h3 className="mt-6 font-wide text-h2 font-semibold">Thanks — message received.</h3>
                 <p className="mt-3 text-fg-muted">We&apos;ll reply within 24 hours.</p>
                 {result.delivered === 'logged' && (
@@ -56,7 +91,14 @@ export default function ContactForm() {
                         Dev: email isn&apos;t configured, so the inquiry was logged to the server console.
                     </p>
                 )}
-                <button type="button" onClick={() => setDismissed(result)} className={`${buttonClass('secondary')} mt-8`}>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setDismissed(result);
+                        setToken(null);
+                    }}
+                    className={`${buttonClass('secondary')} mt-8`}
+                >
                     Send another
                 </button>
             </div>
@@ -85,11 +127,12 @@ export default function ContactForm() {
 
     return (
         <fetcher.Form
+            ref={formRef}
             method="post"
             action="/contact"
             noValidate
             onSubmit={handleSubmit}
-            className="rounded-2xl border border-line bg-surface p-6 shadow-card sm:p-8"
+            className="border-t border-line-strong pt-8"
         >
             <div className="grid gap-5 sm:grid-cols-2 hscroll:gap-4">
                 <div>
@@ -130,19 +173,31 @@ export default function ContactForm() {
                 </label>
             </div>
 
+            <TurnstileWidget
+                sitekey={site.turnstileSitekey}
+                action="contact"
+                resetKey={resetKey}
+                onToken={handleToken}
+                onError={handleCheckError}
+            />
+
+            {(verifyError || checkFailed) && (
+                <p role="alert" className="mt-5 border-l-2 border-danger py-1 pl-4 text-sm text-danger">
+                    {checkFailed
+                        ? "Our spam check couldn't run. Please reload the page and try again."
+                        : "We couldn't verify you're human. Please try again."}
+                </p>
+            )}
+
             {formError && (
-                <p role="alert" className="mt-5 rounded-lg border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
-                    We couldn&apos;t send your message. Please email{' '}
-                    <a href={`mailto:${site.email}`} className="font-medium underline">
-                        {site.email}
-                    </a>{' '}
-                    instead.
+                <p role="alert" className="mt-5 border-l-2 border-danger py-1 pl-4 text-sm text-danger">
+                    We couldn&apos;t send your message. Please email <EmailAddress /> instead.
                 </p>
             )}
 
             <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <button type="submit" disabled={sending} className={buttonClass('primary', 'lg')}>
-                    {sending ? 'Sending…' : 'Send inquiry'}
+                <button type="submit" disabled={sending || waiting} className={buttonClass('primary', 'lg')}>
+                    {waiting ? 'Checking…' : sending ? 'Sending…' : 'Send inquiry'}
                 </button>
                 <p className="text-sm text-fg-muted">We reply within 24 hours.</p>
             </div>

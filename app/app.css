@@ -54,7 +54,6 @@
   --text-lede: clamp(1.0625rem, min(1.3vw, 2.3vh), 1.3125rem);
   --text-lede--line-height: 1.55;
 
-  --shadow-card: 0 1px 2px rgb(0 23 31 / 0.04), 0 18px 40px -24px rgb(0 23 31 / 0.22);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 
   --animate-nudge-x: nudge-x 1.6s ease-in-out infinite;

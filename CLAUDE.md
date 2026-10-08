@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 yarn dev         # Vite dev server + HMR (http://localhost:5173)
 yarn build       # Production build -> build/client + build/server
-yarn start       # Serve the production build via react-router-serve
+yarn deploy      # Vercel preview deployment (vercel CLI); `yarn deploy:prod` for production
 yarn typecheck   # react-router typegen && tsc --noEmit
 yarn lint        # ESLint flat config (typescript-eslint + react-hooks)
 ```
@@ -21,14 +21,14 @@ Frilogix, a software & AI engineering company. `spec.md` is the authoritative PR
 the page inventory, per-page content requirements, design direction ("Engineered Swiss", §11),
 and SEO keywords. Read it before adding or restructuring pages.
 
-It is a **one-page site**: Home, Services, Work, About and Contact are sections of a single
+It is a **one-page site**: Home, Services, Work, Company and Contact are sections of a single
 document, in that order. On desktop they sit side by side and vertical scrolling moves them
 horizontally; see "One-page layout" below. Each still has its own URL (`/`, `/services`,
-`/work`, `/about`, `/contact`).
+`/work`, `/company`, `/contact`).
 
-Two routes only redirect (301), preserving inbound links: `/ai-engineering` →
-`/services#intelligent-systems` (the AI page was merged into Services) and `/case-studies` →
-`/work` (renamed). Don't re-add either to the nav.
+Three routes only redirect (301), preserving inbound links: `/ai-engineering` →
+`/services#intelligent-systems` (the AI page was merged into Services), `/case-studies` →
+`/work` and `/about` → `/company` (renamed). Don't re-add any of them to the nav.
 
 Migrated from Next.js 16 App Router. If you find Next.js idioms (`next/link`, `next/image`,
 `"use client"`, `export const metadata`), they are leftovers — remove them.
@@ -53,6 +53,26 @@ client — the same module can export `meta` and use `useEffect`/`useRef`. There
 client/server component split and no `"use client"` directive. Server-only code lives in
 `*.server.ts` files (e.g. `app/lib/inquiry.server.ts`), which never reach the client bundle.
 
+### Hosting and caching (Vercel)
+
+Deployed to **Vercel** with the `@vercel/react-router` preset, through the `vercel` CLI
+(`.vercelignore` keeps `.env*` out of uploads). Content only changes on deploy, so the five
+pages are **prerendered** to static HTML at build time (`prerender` in
+`react-router.config.ts`, derived from `pages`). Vercel's CDN serves them until the next
+deploy; browsers revalidate (`max-age=0, must-revalidate`) so a deploy shows at once, and
+hashed `/assets/*` are `immutable` for a year. Only the `/contact` action, the redirect routes
+and 404s run as a server function. Because pages are built without a request, absolute URLs
+(canonical, Open Graph) use the fixed `site.url`, not the request origin.
+
+`gsap` is bundled into the server build (`ssr.noExternal` in `vite.config.ts`): its
+`gsap/ScrollTrigger` entry can't be imported by name from plain Node ESM and crashed the
+function on Vercel. Check new client-only packages the same way: `node -e
+"import('./build/server/<dir>/index.js')"` after `yarn build`.
+
+Production env vars (set in the Vercel dashboard): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`,
+`SMTP_PASS`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL`, `TURNSTILE_SECRET`,
+`TURNSTILE_HOSTNAMES` (`frilogix.com,www.frilogix.com`, never localhost).
+
 Route types are generated into `.react-router/types` and imported per-route:
 
 ```tsx
@@ -67,9 +87,9 @@ export const meta: Route.MetaFunction = ({ matches }) => pageMeta({ title, descr
 
 React Router renders **only the deepest matching route's `meta`** — nothing is merged from
 root. So every page route returns its complete set from `pageMeta()` (`app/lib/meta.ts`):
-title, description, Open Graph and Twitter tags (absolute URLs, using the origin from the
-root `loader`), and optional `noindex`. Root's own `meta` is only seen by the 404 page.
-`/work` is `noindex` while `app/content/work.ts` has no case studies.
+title, description, canonical link, Open Graph and Twitter tags (absolute URLs from
+`site.url`), and optional `noindex`. Root's own `meta` is only seen by the 404 page.
+`/work` is `noindex` only if `app/content/work.ts` has no products.
 
 `public/og.png` (1200×630) is rendered from an HTML template with Playwright; regenerate it if
 the headline or brand changes.
@@ -83,22 +103,34 @@ restoration/hash scrolling would fight it.
 
 - Fonts are self-hosted through Fontsource CSS imports (Mona Sans with its width axis, and
   JetBrains Mono); `links` preloads the Latin Mona Sans file.
-- A tiny `loader` returns the request origin for `pageMeta()`; `shouldRevalidate` keeps it from
-  re-running after form submissions.
 - `ErrorBoundary` renders both thrown errors and 404s. It re-renders `Navbar`/`Footer` itself
   because it replaces the default export, not the layout.
 
 ### Content (`app/content/`)
 
 Copy and facts live in typed data files, not in JSX: `site.ts` (contact details, booking link,
-social links, page order), `home.ts`, `services.ts`, `work.ts`, `about.ts`, `contact.ts`.
+social links, page order), `home.ts`, `services.ts`, `work.ts`, `company.ts`, `contact.ts`.
 Values marked `TODO` or `DRAFT` are placeholders awaiting confirmation from Frilogix.
 
-**Proof is never invented.** `proof` (logos, metrics), `caseStudies` and `team` are empty
-until real content arrives. While empty, the Proof and Team panels are omitted from production
-builds, Work shows a single "being written up" panel, and dev builds draw dashed placeholder
-slots (`~/components/ui/Placeholder`, which renders nothing in production). Fill the arrays and
-the panels appear.
+**Proof is never invented.** Frilogix is a new company with no client work to show yet, so its
+proof is its own products, `products` in `work.ts` (Uitiful, Vantuu). Home's second panel
+(`/#products`) introduces them with screenshots and links to their panels; Work is just one
+panel per product (`/work#uitiful`), with no intro panel of its own. There are no client logos, metrics or case studies on the site, and
+copy must not imply past client projects. **Frilogix has a solo founder who stays unnamed**:
+the company (Frilogix LLC, El Paso, Texas) is the public face. There is no Team section, and
+copy must not name people or imply a staff (no "our engineers", "our team of…"); "we" for the
+company is fine. Missing content is marked in dev builds with dashed slots
+(`~/components/ui/Placeholder`, which renders nothing in production).
+
+Product copy comes from the
+product's own site or from Frilogix; `public/work/*.jpg` are screenshots of each product
+(Vantuu's from its private staging site, which must never be linked). A product without an
+`image` gets a full-width text panel in production.
+
+Each product panel opens with the product's own logo (`public/work/*-logo.svg`, cropped to the
+artwork). Uitiful's is drawn for dark backgrounds and Vantuu's for light, so a product's `ink`
+flag, not its position, decides which panel is the page's one ink panel. Uitiful's wordmark is
+outlined from Sora Bold, its brand font, so it renders without that font loaded.
 
 `site.bookingUrl` is the Cal.com/Calendly link behind every "Book a call" button; while it is
 `null` those buttons open the contact form.
@@ -108,7 +140,7 @@ the panels appear.
 There is no `tailwind.config.js`. Tailwind is wired through the `@tailwindcss/vite` plugin, and
 all tokens are declared in the `@theme` block of `app/app.css`. Colours are named by **role**:
 
-- `bg` (paper), `surface` (cards), `fg` (ink text), `fg-muted`, `line`, `line-strong`
+- `bg` (paper), `surface` (form inputs), `fg` (ink text), `fg-muted`, `line`, `line-strong`
   (control borders, ≥ 3:1), `accent` / `accent-strong` / `on-accent` (buttons, focus, active
   nav — only things you click), `accent-ink` (teal text), `tint` (strokes, never text on
   paper), `ink`, `danger`.
@@ -117,14 +149,18 @@ all tokens are declared in the `@theme` block of `app/app.css`. Colours are name
 - Fluid type: `text-display`, `text-h1`, `text-h2`, `text-h3`, `text-lede`. Each scales with
   `min(vw, vh)` so headings fit one panel on short desktop screens. `font-wide` uses Mona
   Sans' width axis for headings.
-- `shadow-card`, `animate-fade-up` (CSS-only entrance), `animate-nudge-x`.
+- `animate-fade-up` (CSS-only entrance), `animate-nudge-x`.
+
+**Swiss, not cards.** Structure comes from hairline rules (`border-t border-line-strong` above
+a column or row), mono index numbers and type size: no rounded corners, no card backgrounds,
+no shadows, no pills. Buttons and inputs are square.
 
 Every text pairing is checked against WCAG AA (4.5:1). Add colours to `@theme`, never inline
 hex, and keep that check passing.
 
 ### Shared components (`app/components/ui/`)
 
-`ButtonLink` / `buttonClass()` / `BookCallButton` (pill buttons; `ButtonLink` renders a
+`ButtonLink` / `buttonClass()` / `BookCallButton` (square buttons; `ButtonLink` renders a
 router `Link` or, for `http…` URLs, a plain `<a>`), `SectionHeader` (eyebrow + h2 + lede;
 every page title is an **h2** — the hero headline is the document's only h1), `Eyebrow`,
 `ArrowLink`, `Placeholder`, `icons`.
@@ -209,10 +245,17 @@ focuses `<main>`. After the last panel the pin releases and the `Footer` scrolls
 `~/components/ContactForm` posts to the `/contact` route `action` through a **fetcher**, so
 submitting never navigates away from the one-page site. Validation (`app/lib/inquiry.ts`) runs
 on blur and on submit in the browser and again in the action. A hidden `website` field is a
-honeypot. `sendInquiry()` (`app/lib/inquiry.server.ts`) emails through Resend's REST API when
-`RESEND_API_KEY`, `CONTACT_TO_EMAIL` and `CONTACT_FROM_EMAIL` are set. Without them, dev logs
+honeypot, and Cloudflare Turnstile (`~/components/TurnstileWidget`, checked in
+`app/lib/turnstile.server.ts` before sending) stops bots; the widget is `frilogix-contact`,
+its site key is in `site.ts`. `sendInquiry()` (`app/lib/inquiry.server.ts`) emails over SMTP
+with Nodemailer when the `SMTP_*` and `CONTACT_*` env vars are set. Without them, dev logs
 the inquiry to the server console, and **production returns an error that tells the visitor to
 email instead** — the form never claims a message was sent when it wasn't.
+
+**The contact email never ships as text.** It is drawn as SVG outlines by
+`~/components/ui/EmailAddress` from `app/content/email-glyphs.ts`, which
+`scripts/email-svg.py <address>` generates (Mona Sans 500). Don't add the address to any
+source file, `mailto:` link, meta tag or doc; to change it, rerun the script.
 
 ### Conventions
 
@@ -226,17 +269,16 @@ email instead** — the form never claims a message was sent when it wasn't.
 
 See `LAUNCH-AUDIT.md` for the full pre-launch audit. The load-bearing items:
 
-- **Email isn't configured.** Set the three `RESEND_*` / `CONTACT_*` env vars in production,
-  or the form reports failure.
-- **Real proof, case studies and team** are needed (see `app/content/`); until then Home has
-  one panel and Work is a placeholder.
+- **Email isn't configured.** Set the `SMTP_*` / `CONTACT_*` and `TURNSTILE_*` env vars in
+  Vercel, or the form reports failure.
+- Vantuu's `url` stays `null` until vantuu.com is live.
 - Privacy and Terms pages don't exist; they're needed once the form collects data, and should
   be linked from the footer.
-- `hello@frilogix.com`, "San Francisco, CA" and the social links in `app/content/site.ts` are
-  unconfirmed placeholders; `bookingUrl` is unset.
+- The contact mailbox is unconfirmed (check it receives mail), and the social links in
+  `app/content/site.ts` are placeholders; `bookingUrl` is unset.
 - Every URL serves the same one-page document, so search engines will likely treat
-  `/services`, `/about`, etc. as duplicates of `/`, despite their distinct `<title>`s. No
-  canonical tags, `sitemap.xml`, `robots.txt` or JSON-LD yet.
+  `/services`, `/company`, etc. as near-duplicates of `/`; each now has its own canonical tag.
+  No `sitemap.xml`, `robots.txt` or JSON-LD yet.
 - No analytics installed. No SVG logo or SVG favicon (needs a vector wordmark).
 
 ## Repo artifacts to ignore

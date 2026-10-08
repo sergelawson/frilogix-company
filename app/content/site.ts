@@ -4,12 +4,18 @@
  */
 export const site = {
     name: 'Frilogix',
-    // TODO: confirm this mailbox receives mail (LAUNCH-AUDIT.md P0 #6).
-    email: 'hello@frilogix.com',
-    // TODO: confirm, or replace with "Remote-first".
-    location: 'San Francisco, CA',
+    // Production origin. Pages are prerendered at build time, so absolute URLs
+    // (canonical, Open Graph) can't come from the request.
+    url: 'https://frilogix.com',
+    legalName: 'Frilogix LLC',
+    // The contact email is not here on purpose: it ships only as SVG outlines
+    // (~/components/ui/EmailAddress), never as text. See scripts/email-svg.py.
+    location: 'El Paso, Texas',
     // Cal.com or Calendly link. While null, "Book a call" opens the contact form.
     bookingUrl: null as string | null,
+    // Cloudflare Turnstile site key for the contact form (public by design; the
+    // secret is TURNSTILE_SECRET on the server). Widget "frilogix-contact".
+    turnstileSitekey: '0x4AAAAAAFRV2shzbxSknCfk',
     // TODO: add LinkedIn / GitHub / X profile URLs. The footer only lists entries present here.
     social: [] as { label: string; href: string }[],
 };
@@ -22,6 +28,6 @@ export const pages = [
     { path: '/', label: 'Home' },
     { path: '/services', label: 'Services' },
     { path: '/work', label: 'Work' },
-    { path: '/about', label: 'About' },
+    { path: '/company', label: 'Company' },
     { path: '/contact', label: 'Contact' },
 ] as const;

@@ -8,10 +8,11 @@ export default [
     index("routes/home.tsx"),
     route("services", "routes/services.tsx"),
     route("work", "routes/work.tsx"),
-    route("about", "routes/about.tsx"),
+    route("company", "routes/company.tsx"),
     route("contact", "routes/contact.tsx"),
   ]),
   // Redirects for renamed or merged pages.
   route("ai-engineering", "routes/ai-engineering.tsx"),
   route("case-studies", "routes/case-studies.tsx"),
+  route("about", "routes/about.tsx"),
 ] satisfies RouteConfig;

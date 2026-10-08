@@ -1,6 +1,7 @@
 import ContactForm from '~/components/ContactForm';
 import { Page, Panel, panelInner } from '~/components/Panel';
 import { BookCallButton } from '~/components/ui/Button';
+import EmailAddress from '~/components/ui/EmailAddress';
 import Eyebrow from '~/components/ui/Eyebrow';
 import { contactIntro, nextSteps } from '~/content/contact';
 import { site } from '~/content/site';
@@ -32,10 +33,7 @@ export default function ContactSection() {
                                 {/* Without a booking link, "Book a call" would just point back at this form. */}
                                 {site.bookingUrl && <BookCallButton />}
                                 <p className="text-sm text-fg-muted">
-                                    Prefer email?{' '}
-                                    <a href={`mailto:${site.email}`} className="font-medium text-accent-ink transition-colors hover:text-fg">
-                                        {site.email}
-                                    </a>
+                                    Prefer email? <EmailAddress className="text-accent-ink" />
                                 </p>
                             </div>
                         </div>

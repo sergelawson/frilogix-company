@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Link } from 'react-router';
+import EmailAddress from '~/components/ui/EmailAddress';
 import { pages, site } from '~/content/site';
 
 const serviceLinks = [
@@ -23,11 +24,11 @@ const Footer: FC = () => {
                             <img src="/logo-on-dark.png" alt="Frilogix" width={160} height={40} className="h-8 w-auto" loading="lazy" />
                         </Link>
                         <p className="mt-6 max-w-sm text-fg-muted">
-                            Software and AI engineering for startups and scale-ups: web, mobile and LLM systems that ship.
+                            Software and agentic AI engineering: web, mobile, platform and AI systems. Makers of Uitiful and Vantuu.
                         </p>
-                        <a href={`mailto:${site.email}`} className="mt-6 inline-block text-accent-ink transition-colors hover:text-fg">
-                            {site.email}
-                        </a>
+                        <p className="mt-6 text-accent-ink">
+                            <EmailAddress />
+                        </p>
                     </div>
 
                     <nav aria-label="Footer" className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:col-span-7">
@@ -61,7 +62,7 @@ const Footer: FC = () => {
                 </div>
 
                 <div className="mt-16 flex flex-col gap-2 border-t border-line pt-8 font-mono text-xs text-fg-muted sm:flex-row sm:justify-between">
-                    <p>&copy; {new Date().getFullYear()} Frilogix</p>
+                    <p>&copy; {new Date().getFullYear()} {site.legalName}</p>
                     <p>{site.location}</p>
                 </div>
             </div>

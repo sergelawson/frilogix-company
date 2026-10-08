@@ -4,7 +4,7 @@ import HorizontalPages from '~/components/HorizontalPages';
 import HomeSection from '~/sections/HomeSection';
 import ServicesSection from '~/sections/ServicesSection';
 import WorkSection from '~/sections/WorkSection';
-import AboutSection from '~/sections/AboutSection';
+import CompanySection from '~/sections/CompanySection';
 import ContactSection from '~/sections/ContactSection';
 
 // Order here is the scroll order — keep it matching `pages` in ~/content/site.
@@ -15,7 +15,7 @@ const Sections = memo(function Sections() {
             <HomeSection />
             <ServicesSection />
             <WorkSection />
-            <AboutSection />
+            <CompanySection />
             <ContactSection />
         </>
     );

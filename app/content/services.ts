@@ -3,7 +3,7 @@ import { stackIcons } from './stack-icons';
 export const servicesIntro = {
     eyebrow: 'Services',
     title: 'From interface to infrastructure to intelligence.',
-    lede: 'Frontend, backend, mobile and AI engineering under one roof, so the product, the platform and the model are designed together.',
+    lede: 'Frontend, backend, mobile, platform and AI engineering under one roof, so the product, the infrastructure and the model are designed together.',
 };
 
 export const services = [
@@ -27,6 +27,13 @@ export const services = [
         stack: 'React Native',
         desc: 'Cross-platform efficiency. Native-quality mobile applications that utilize device capabilities seamlessly.',
         features: ['iOS & Android', 'Offline First', 'High Performance'],
+    },
+    {
+        id: 'platform',
+        title: 'Platform Engineering',
+        stack: 'AWS / Kubernetes',
+        desc: 'Reliable foundations. We build cloud infrastructure, Kubernetes platforms and CI/CD pipelines so teams ship often and recover fast.',
+        features: ['DevOps & CI/CD', 'Infrastructure as Code', 'Observability'],
     },
     {
         id: 'ai-engineering',
@@ -79,14 +86,19 @@ export const processSteps = [
     { title: 'Operate', desc: 'Monitoring, evaluation and handover — or we stay on as part of your team.', duration: null as string | null },
 ];
 
-/** Monochrome logos where simple-icons has one; text otherwise. */
-export const stack: { name: string; icon: string | null }[] = [
+/** Monochrome logos, drawn in the text colour. React Native's logo is React's. */
+export const stack: { name: string; icon: string }[] = [
+    { name: 'TypeScript', icon: stackIcons.typescript },
     { name: 'React', icon: stackIcons.react },
+    { name: 'React Native', icon: stackIcons.react },
     { name: 'Node.js', icon: stackIcons.nodejs },
     { name: 'Go', icon: stackIcons.go },
+    { name: 'Rust', icon: stackIcons.rust },
     { name: 'Python', icon: stackIcons.python },
     { name: 'PostgreSQL', icon: stackIcons.postgresql },
+    { name: 'AWS', icon: stackIcons.aws },
+    { name: 'Kubernetes', icon: stackIcons.kubernetes },
     { name: 'LangChain', icon: stackIcons.langchain },
-    { name: 'AWS', icon: null },
-    { name: 'OpenAI', icon: null },
+    { name: 'OpenAI', icon: stackIcons.openai },
+    { name: 'Anthropic', icon: stackIcons.anthropic },
 ];

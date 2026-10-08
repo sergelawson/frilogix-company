@@ -1,16 +1,11 @@
 export const hero = {
-    eyebrow: 'Software & AI engineering',
-    title: 'Web, mobile and AI systems that ship.',
-    lede: 'React, Go and LLM engineering for startups and scale-ups, from first prototype to production.',
+    eyebrow: 'Software & agentic AI engineering',
+    title: 'Software that ships. AI agents that work.',
+    lede: 'We build web, mobile and backend products for startups and scale-ups, and agentic AI systems that run inside them. We run our own AI experiments, so what reaches your product is already tested.',
 };
 
-/**
- * Real, publishable proof only — never invented. While both lists are empty
- * the Proof panel is left out of production builds (dev shows empty slots).
- */
-export const proof = {
-    // Client logos you have permission to show; `src` is a file in public/.
-    logos: [] as { name: string; src: string }[],
-    // Hard numbers, e.g. { value: '40%', label: 'lower inference cost for a fintech client' }.
-    metrics: [] as { value: string; label: string }[],
+export const productsIntro = {
+    eyebrow: 'Our products',
+    title: "What we're building.",
+    lede: 'Uitiful and Vantuu are agentic platforms we design, build and run ourselves, on the same stack we offer clients.',
 };

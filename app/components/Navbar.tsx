@@ -75,7 +75,7 @@ const Navbar: FC = () => {
             <a
                 href="#main"
                 onClick={skipToContent}
-                className="sr-only rounded-full bg-accent px-4 py-2 text-sm font-medium text-on-accent focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60]"
+                className="sr-only bg-accent px-4 py-2 text-sm font-medium text-on-accent focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60]"
             >
                 Skip to content
             </a>
@@ -120,7 +120,7 @@ const Navbar: FC = () => {
                                         {link.label}
                                         <span
                                             aria-hidden="true"
-                                            className={`absolute inset-x-0 -bottom-0.5 h-0.5 rounded-full bg-accent transition-transform duration-300 ${
+                                            className={`absolute inset-x-0 -bottom-0.5 h-0.5 bg-accent transition-transform duration-300 ${
                                                 active ? "scale-x-100" : "scale-x-0"
                                             }`}
                                         />
@@ -139,7 +139,7 @@ const Navbar: FC = () => {
                     aria-expanded={isOpen}
                     aria-controls="mobile-menu"
                     aria-label={isOpen ? "Close menu" : "Open menu"}
-                    className="-mr-2 flex size-11 items-center justify-center rounded-full text-fg md:hidden"
+                    className="-mr-2 flex size-11 items-center justify-center text-fg md:hidden"
                 >
                     <svg className="size-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                         {isOpen ? (
