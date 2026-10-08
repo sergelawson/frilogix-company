@@ -11,6 +11,8 @@ export default [
     route("company", "routes/company.tsx"),
     route("contact", "routes/contact.tsx"),
   ]),
+  // Standalone pages outside the one-page scroll.
+  route("privacy", "routes/privacy.tsx"),
   // Redirects for renamed or merged pages.
   route("ai-engineering", "routes/ai-engineering.tsx"),
   route("case-studies", "routes/case-studies.tsx"),
