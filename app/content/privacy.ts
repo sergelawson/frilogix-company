@@ -11,7 +11,7 @@ import { site } from './site';
  * confirmation from Frilogix (ideally with a lawyer).
  */
 
-export const lastUpdated = 'October 8, 2026';
+export const lastUpdated = 'October 9, 2026';
 
 export type Block = { p: string } | { ul: string[] } | { table: { head: string[]; rows: string[][] } };
 export type Section = { heading: string; blocks: Block[] };
@@ -29,7 +29,7 @@ export const privacySections: Section[] = [
             {
                 ul: [
                     'No advertising, no ad tracking, and we never sell or share your personal information.',
-                    'Analytics cookies (Google Analytics) are set only if you accept them, and you can change your mind at any time under "Cookie settings" in the footer.',
+                    'We use analytics cookies (Google Analytics) to see how the site is used. In the EEA, the UK and Switzerland they are set only if you accept them; elsewhere they are on by default and you can opt out. Either way you can change your mind at any time under "Cookie settings" in the footer.',
                     'If you write to us through the contact form, we use your details only to reply to you.',
                     'Spam protection (Cloudflare Turnstile) and hosting (Vercel) process technical data such as your IP address, because the site cannot work securely without them.',
                 ],
@@ -88,16 +88,19 @@ export const privacySections: Section[] = [
         ],
     },
     {
-        heading: 'Analytics (only with your consent)',
+        heading: 'Analytics',
         blocks: [
             {
-                p: 'If you click "Accept" in the cookie bar, we use Google Analytics 4, provided by Google Ireland Limited (for the EEA, UK and Switzerland) and Google LLC, to understand how the site is used: which pages are viewed, for how long, how far they are scrolled, which outbound links are clicked, the referring site, your device type, browser and operating system, and your approximate location (country or city). Google Analytics 4 does not log or store IP addresses.',
+                p: 'We use Google Analytics 4, provided by Google Ireland Limited (for the EEA, UK and Switzerland) and Google LLC, to understand how the site is used: which pages are viewed, for how long, how far they are scrolled, which outbound links are clicked, the referring site, your device type, browser and operating system, and your approximate location (country or city). Google Analytics 4 does not log or store IP addresses. Google signals and ad personalisation are turned off, and we do not link analytics to advertising.',
             },
             {
-                p: 'Google signals and ad personalisation are turned off, and we do not link analytics to advertising. Until you accept, no Google script is loaded and no analytics cookie is set.',
+                p: 'In the EEA, the UK and Switzerland, analytics runs only if you click "Accept" in the cookie bar; until then no Google script is loaded and no analytics cookie is set. Legal basis: your consent (Art. 6(1)(a) GDPR and Art. 5(3) of the ePrivacy Directive).',
             },
             {
-                p: 'Legal basis: your consent (Art. 6(1)(a) GDPR and Art. 5(3) of the ePrivacy Directive). You can withdraw it at any time under "Cookie settings" in the footer; we then stop analytics and delete the analytics cookies. Withdrawal does not affect processing that happened before it.',
+                p: 'Elsewhere, analytics is on by default, and the cookie bar tells you so. Click "Opt out" there, or under "Cookie settings" in the footer, and it stops. Legal basis, where one applies: our legitimate interest in understanding how the site is used.',
+            },
+            {
+                p: 'Which applies is decided in your browser from your device\'s time zone setting, which is not sent to us; any European time zone gets the consent request. You can opt out or withdraw consent at any time under "Cookie settings" in the footer: we then stop analytics and delete the analytics cookies, and we keep your opt-out until you change it. This does not affect processing that happened before.',
             },
             // DRAFT: matches the GA4 property's data retention setting (Admin → Data retention); update both together.
             {
@@ -112,9 +115,9 @@ export const privacySections: Section[] = [
                 table: {
                     head: ['Name', 'Set by', 'Purpose', 'When', 'Expires'],
                     rows: [
-                        ['frilogix-consent (local storage)', 'This site', 'Remembers your cookie choice and when you made it', 'Always (strictly necessary)', 'We ask again after 6 months'],
-                        ['_ga', 'Google Analytics', 'Distinguishes visitors', 'Only after you accept', '2 years'],
-                        [`_ga_${site.gaMeasurementId?.replace('G-', '') ?? '<id>'}`, 'Google Analytics', 'Keeps the state of a visit', 'Only after you accept', '2 years'],
+                        ['frilogix-consent (local storage)', 'This site', 'Remembers your cookie choice and when you made it', 'When you choose (strictly necessary)', 'An opt-out is kept until you change it; an "Accept" is asked for again after 6 months'],
+                        ['_ga', 'Google Analytics', 'Distinguishes visitors', 'EEA, UK and Switzerland: only after you accept. Elsewhere: unless you opt out', '2 years'],
+                        [`_ga_${site.gaMeasurementId?.replace('G-', '') ?? '<id>'}`, 'Google Analytics', 'Keeps the state of a visit', 'EEA, UK and Switzerland: only after you accept. Elsewhere: unless you opt out', '2 years'],
                     ],
                 },
             },
@@ -130,7 +133,7 @@ export const privacySections: Section[] = [
                 ul: [
                     'Vercel Inc. (USA): website hosting.',
                     'Cloudflare, Inc. (USA): spam protection on the contact form.',
-                    'Google Ireland Limited / Google LLC (USA): analytics, only with your consent.',
+                    'Google Ireland Limited / Google LLC (USA): analytics (in the EEA, the UK and Switzerland only with your consent; elsewhere unless you opt out).',
                     'Our email provider: delivers contact form messages to our mailbox.',
                 ],
             },
@@ -177,7 +180,7 @@ export const privacySections: Section[] = [
         heading: 'Changes to this policy',
         blocks: [
             {
-                p: 'We will update this page when our practices change, and change the date below. If we change how we use cookies or analytics, we will ask for your consent again.',
+                p: 'We will update this page when our practices change, and change the date below. If we change how we use cookies or analytics, we will ask for your consent again where consent is required.',
             },
         ],
     },

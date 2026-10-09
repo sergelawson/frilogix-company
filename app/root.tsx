@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import { useLayoutEffect, type ReactNode } from "react";
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
   isRouteErrorResponse,
+  useLocation,
 } from "react-router";
 import monaSans from "@fontsource-variable/mona-sans/files/mona-sans-latin-standard-normal.woff2?url";
 
@@ -15,6 +16,7 @@ import GoogleAnalytics from "~/components/GoogleAnalytics";
 import CookieConsent from "~/components/CookieConsent";
 import { ButtonLink } from "~/components/ui/Button";
 import Eyebrow from "~/components/ui/Eyebrow";
+import { pages } from "~/content/site";
 import "@fontsource-variable/mona-sans/standard.css";
 import "@fontsource-variable/jetbrains-mono/index.css";
 import "./app.css";
@@ -42,11 +44,19 @@ export const meta: Route.MetaFunction = () => [
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: the script below may add a class to <html> before React hydrates.
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#f6f7f7" />
+        {/* A deep link (/company, /#products): keep the pages hidden until HorizontalPages has
+            moved to the one the URL names, so the home page never shows first (.deep-link in app.css). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "if(location.pathname.replace(/\\/+$/,'')||location.hash)document.documentElement.classList.add('deep-link')",
+          }}
+        />
         <Meta />
         <Links />
       </head>
@@ -63,6 +73,14 @@ export function Layout({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
+  const { pathname } = useLocation();
+  // Standalone pages (/privacy) open at the top, not wherever the one-page site was
+  // scrolled to; the one-page site positions itself (HorizontalPages).
+  useLayoutEffect(() => {
+    const path = pathname.replace(/\/+$/, "") || "/";
+    if (!pages.some((page) => page.path === path)) window.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />

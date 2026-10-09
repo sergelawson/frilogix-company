@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router';
-import { buttonClass } from '~/components/ui/Button';
-import { onConsentChange, onConsentOpen, readConsent, writeConsent, type ConsentValue } from '~/lib/consent';
+import { analyticsNeedsOptIn, onConsentChange, onConsentOpen, readConsent, writeConsent, type ConsentValue } from '~/lib/consent';
 
 /** Re-reads the stored choice when it changes here or in another tab. */
 function subscribe(callback: () => void) {
@@ -13,13 +12,21 @@ function subscribe(callback: () => void) {
     };
 }
 
+const textLink = 'underline underline-offset-2 transition-colors hover:text-fg';
+const smallButton = 'shrink-0 border border-line-strong px-2.5 py-1 text-fg transition-colors hover:bg-surface';
+
 /**
- * Cookie bar for optional (analytics) cookies, built to EU rules:
- * - shown before anything optional runs; nothing is pre-selected;
- * - "Reject" is as prominent and as easy as "Accept" (same style, one click);
- * - plain-language purpose, with a link to the privacy policy;
- * - reopened any time from the footer ("Cookie settings") to change the choice.
- * Client-only: the pages are prerendered, and the choice lives in the browser.
+ * Cookie notice for optional (analytics) cookies: one small, quiet note centred
+ * at the bottom, in two versions (see ~/lib/consent):
+ * - In Europe, a consent request built to EU rules: shown before anything
+ *   optional runs, nothing pre-selected, "Reject" and "Accept" as two identical
+ *   buttons (same style, one click each).
+ * - Elsewhere, analytics is already on: an "Opt out" link turns it off, and
+ *   "OK" dismisses the note.
+ * Both state the purpose in plain words and link to the privacy policy, which
+ * names the provider; the note doesn't. Reopened any time from the footer
+ * ("Cookie settings") to change the choice. Client-only: the pages are
+ * prerendered, and the choice lives in the browser.
  */
 export default function CookieConsent() {
     // `undefined` while prerendering: there is no browser storage, so render nothing.
@@ -29,7 +36,7 @@ export default function CookieConsent() {
 
     useEffect(() => onConsentOpen(() => setReopened(true)), []);
 
-    // When reopened from the footer, move focus into the bar so keyboard users land on it.
+    // When reopened from the footer, move focus into the note so keyboard users land on it.
     useEffect(() => {
         if (reopened) region.current?.querySelector<HTMLButtonElement>('button')?.focus();
     }, [reopened]);
@@ -43,36 +50,52 @@ export default function CookieConsent() {
         setReopened(false);
     };
 
+    const optIn = analyticsNeedsOptIn();
+    const off = current === 'denied';
+    const message = off
+        ? 'Analytics cookies are off.'
+        : optIn
+          ? current === 'granted'
+              ? 'Analytics cookies are on.'
+              : 'May we use analytics cookies to improve the site?'
+          : 'We use analytics cookies to improve the site.';
+
     return (
         <div
             ref={region}
             role="region"
-            aria-label="Cookie consent"
-            className="theme-ink fixed inset-x-0 bottom-0 z-[60] border-t border-line-strong bg-bg text-fg"
+            aria-label={optIn ? 'Cookie consent' : 'Cookie notice'}
+            className="fixed inset-x-4 bottom-4 z-[60] flex items-center gap-4 border border-line-strong bg-bg py-2 pl-3.5 pr-2 text-xs text-fg-muted sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2"
         >
-            <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:px-8">
-                <p className="max-w-3xl text-sm leading-relaxed text-fg-muted">
-                    <span className="font-medium text-fg">Analytics cookies, only with your OK.</span> With your consent we use
-                    Google Analytics to see which pages are read; nothing is set before you choose, and you can change your mind
-                    any time under &ldquo;Cookie settings&rdquo; in the footer.{' '}
-                    <Link to="/privacy" className="text-accent-ink underline underline-offset-2 hover:text-fg">
-                        Privacy policy
-                    </Link>
-                    {current && (
-                        <span className="mt-1 block font-mono text-[0.6875rem] uppercase tracking-[0.14em]">
-                            Current choice: {current === 'granted' ? 'accepted' : 'rejected'}
-                        </span>
-                    )}
-                </p>
-                <div className="flex shrink-0 gap-3">
-                    <button type="button" onClick={() => choose('denied')} className={buttonClass('secondary')}>
+            <p className="leading-relaxed sm:whitespace-nowrap">
+                {message}{' '}
+                {!optIn && (
+                    <>
+                        <button type="button" onClick={() => choose(off ? 'granted' : 'denied')} className={textLink}>
+                            {off ? 'Turn on' : 'Opt out'}
+                        </button>
+                        <span aria-hidden="true"> · </span>
+                    </>
+                )}
+                <Link to="/privacy" className={textLink}>
+                    Privacy
+                </Link>
+            </p>
+            {optIn ? (
+                // Europe: nothing runs until one of these, and Reject is exactly as prominent as Accept.
+                <div className="grid shrink-0 grid-cols-2 gap-2">
+                    <button type="button" onClick={() => choose('denied')} className={smallButton}>
                         Reject
                     </button>
-                    <button type="button" onClick={() => choose('granted')} className={buttonClass('secondary')}>
+                    <button type="button" onClick={() => choose('granted')} className={smallButton}>
                         Accept
                     </button>
                 </div>
-            </div>
+            ) : (
+                <button type="button" onClick={() => choose(current ?? 'granted')} className={smallButton}>
+                    OK
+                </button>
+            )}
         </div>
     );
 }

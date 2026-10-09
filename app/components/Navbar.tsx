@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router";
 import { pages } from "~/content/site";
 import { BookCallButton } from "~/components/ui/Button";
 
-const desktopLinks = pages.filter((page) => page.path !== "/" && page.path !== "/contact");
+const desktopLinks = pages.filter((page) => page.path !== "/contact");
 const pad = (n: number) => String(n).padStart(2, "0");
 
 // Skip link: focus <main> directly rather than navigating to "#main", which
@@ -20,7 +20,6 @@ const Navbar: FC = () => {
     const { pathname } = useLocation();
     const buttonRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
-    const current = pages.findIndex((page) => page.path === (pathname.replace(/\/+$/, "") || "/"));
 
     // Track what sits under the bar: past 20px it turns solid, and over an ink
     // panel (or the footer) it switches to the ink theme. Keeps checking for a
@@ -100,11 +99,6 @@ const Navbar: FC = () => {
                 </Link>
 
                 <div className="hidden items-center gap-8 md:flex">
-                    {current >= 0 && (
-                        <span aria-hidden="true" className="font-mono text-xs tabular-nums text-fg-muted">
-                            {pad(current + 1)} / {pad(pages.length)}
-                        </span>
-                    )}
                     <ul className="flex items-center gap-7">
                         {desktopLinks.map((link) => {
                             const active = pathname === link.path;

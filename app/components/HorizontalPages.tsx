@@ -186,9 +186,16 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
                             ? { containerAnimation: tween, start: 'left center', end: 'right center' }
                             : { start: 'top center', end: 'bottom center' }),
                         onToggle: (self) => {
-                            const path = page.dataset.page!;
-                            if (!syncUrl || !self.isActive || normalizePath(locationRef.current.pathname) === path) return;
-                            navigate(path, { replace: true, state: { fromScroll: true } });
+                            if (!syncUrl || !self.isActive) return;
+                            // A frame later, and only if this setup is still live. Tearing it down
+                            // (leaving for /privacy, crossing the horizontal breakpoint, React's
+                            // dev double mount) toggles every trigger one last time with the track
+                            // back at the first page, and that used to rewrite the URL to "/".
+                            requestAnimationFrame(() => {
+                                const path = page.dataset.page!;
+                                if (!syncUrl || !self.isActive || normalizePath(locationRef.current.pathname) === path) return;
+                                navigate(path, { replace: true, state: { fromScroll: true } });
+                            });
                         },
                     });
                 });
@@ -350,8 +357,12 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
                 scrollToLocationRef.current(locationRef.current, false);
                 handledKeyRef.current = locationRef.current.key;
                 syncUrl = true;
+                // On a deep link the pages were hidden until now (root.tsx); this
+                // runs before paint, so they fade in already on the right page.
+                document.documentElement.classList.remove('deep-link');
 
                 return () => {
+                    syncUrl = false;
                     cleanups.forEach((cleanup) => cleanup());
                     scrollToLocationRef.current = () => {};
                 };
@@ -375,7 +386,7 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
             {/* The pin spacer (see pinSpacer above): GSAP styles it in place of wrapping the pinned element in a div of its own. */}
             <div>
                 <div ref={wrapperRef} className="@container hscroll:h-screen hscroll:overflow-clip">
-                    <div ref={trackRef} className="relative hscroll:flex hscroll:h-full hscroll:w-max">
+                    <div ref={trackRef} data-track className="relative hscroll:flex hscroll:h-full hscroll:w-max">
                         {children}
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { site } from '~/content/site';
-import { onConsentChange, readConsent } from '~/lib/consent';
+import { analyticsAllowed, onConsentChange } from '~/lib/consent';
 
 declare global {
     interface Window {
@@ -13,10 +13,11 @@ declare global {
 const TRACKED_HOSTS = ['frilogix.com', 'www.frilogix.com', 'frilogix-company.vercel.app'];
 
 /**
- * Google Analytics 4, loaded only after the visitor accepts analytics cookies
- * (~/components/CookieConsent). Until then no Google script is requested and no
- * cookie is set. Withdrawing consent turns tracking off, tells gtag storage is
- * denied, and deletes the _ga cookies. Ads features stay off either way.
+ * Google Analytics 4, loaded only when analytics is allowed (~/lib/consent):
+ * in Europe after the visitor accepts, elsewhere unless they opt out. Until
+ * then no Google script is requested and no cookie is set. Opting out turns
+ * tracking off, tells gtag storage is denied, and deletes the _ga cookies.
+ * Ads features stay off either way.
  *
  * Page views: GA's enhanced measurement counts "page changes based on browser
  * history events", which covers the URL updates HorizontalPages makes as pages
@@ -26,7 +27,7 @@ export default function GoogleAnalytics() {
     useEffect(() => {
         const id = site.gaMeasurementId;
         if (!id || import.meta.env.DEV || !TRACKED_HOSTS.includes(window.location.hostname)) return;
-        if (readConsent() === 'granted') enable(id);
+        if (analyticsAllowed()) enable(id);
         return onConsentChange((value) => (value === 'granted' ? enable(id) : disable(id)));
     }, []);
     return null;
