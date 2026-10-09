@@ -10,7 +10,7 @@ export const meta: Route.MetaFunction = () =>
     pageMeta({
         title: 'Privacy Policy | Frilogix',
         description:
-            'How Frilogix LLC handles personal data on frilogix.com: the contact form, spam protection, hosting, and analytics cookies that run only with your consent.',
+            'How Frilogix LLC handles personal data on frilogix.com: the contact form, spam protection, hosting, and analytics cookies, and how to opt out.',
         path: '/privacy',
     });
 

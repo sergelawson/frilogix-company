@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import ImageParticles from '~/components/ImageParticles';
-import { Page, Panel, panelInner } from '~/components/Panel';
+import { Page, Panel, PanelGap, panelInner } from '~/components/Panel';
 import { BookCallButton, ButtonLink } from '~/components/ui/Button';
 import Eyebrow from '~/components/ui/Eyebrow';
 import SectionHeader from '~/components/ui/SectionHeader';
@@ -13,10 +13,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
 export default function HomeSection() {
     return (
         <Page path="/" label="Home">
-            <Panel id="home" className="flex items-center">
-                <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-20 pt-32 sm:px-6 lg:px-8 lg:pt-40 hscroll:pb-16 hscroll:pt-24">
-                    <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
-                        <div className="lg:col-span-7">
+            <Panel id="home" className="flex items-center hscroll:items-start">
+                {/* In horizontal mode the hero starts on the same line as every panel (see panelInner). */}
+                <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-20 pt-32 sm:px-6 lg:px-8 lg:pt-40 hscroll:pb-16 hscroll:pt-[calc(6rem+8vh)]">
+                    <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8 hscroll:items-start">
+                        {/* In horizontal mode the headline takes 8 columns so it sets in 3 lines; the X is sized by height, so it doesn't shrink. */}
+                        <div className="lg:col-span-7 hscroll:col-span-8">
                             {/* The headline renders at once (it's the LCP element); the rest fades in after it. */}
                             <Eyebrow>{hero.eyebrow}</Eyebrow>
                             <h1 className="mt-6 font-wide text-display font-semibold text-balance">{hero.title}</h1>
@@ -30,8 +32,9 @@ export default function HomeSection() {
                                 </ButtonLink>
                             </div>
                         </div>
-                        <div className="lg:col-span-5 motion-safe:animate-fade-up motion-safe:[animation-delay:300ms]">
-                            <ImageParticles className="h-64 sm:h-80 lg:h-[30rem] hscroll:h-[52vh]" />
+                        {/* Only beside the headline: stacked under the buttons (phones, tablets) it was just a gap before the next panel. */}
+                        <div className="hidden lg:col-span-5 lg:block hscroll:col-span-4 motion-safe:animate-fade-up motion-safe:[animation-delay:300ms]">
+                            <ImageParticles className="h-[30rem] hscroll:h-[52vh]" />
                         </div>
                     </div>
                 </div>
@@ -50,7 +53,8 @@ export default function HomeSection() {
             <Panel id="products">
                 <div className={panelInner}>
                     <SectionHeader {...productsIntro} />
-                    <ul className="gsap-reveal mt-12 grid gap-x-12 gap-y-12 md:grid-cols-2 hscroll:mt-10">
+                    <PanelGap />
+                    <ul className="gsap-reveal grid gap-x-12 gap-y-12 md:grid-cols-2">
                         {products.map((product, i) => (
                             <li key={product.slug} className="border-t border-line-strong pt-5">
                                 <Link to={`/work#${product.slug}`} className="group block">
@@ -67,7 +71,8 @@ export default function HomeSection() {
                                             width={product.image.width}
                                             height={product.image.height}
                                             loading="lazy"
-                                            className="mt-5 aspect-[16/9] w-full border border-line object-cover object-top hscroll:aspect-auto hscroll:h-[32vh]"
+                                            // Cropped to its top; hovering pans slowly down the page, like a quick look through it.
+                                            className="mt-5 aspect-[16/9] w-full border border-line object-cover object-top transition-[object-position] duration-[2400ms] ease-in-out hscroll:aspect-auto hscroll:h-[32vh] motion-safe:group-hover:object-bottom motion-safe:group-focus-visible:object-bottom"
                                         />
                                     )}
                                     <h3 className="mt-5 font-wide text-h2 font-semibold">

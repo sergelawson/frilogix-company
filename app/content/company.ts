@@ -10,6 +10,23 @@ export const companyIntro = {
     title: 'We build software, and the agents inside it, to one standard.',
 };
 
+/**
+ * The 3D mark beside the title: the X as four arms, read as a two-by-two.
+ * Left, matte ink: the software. Right, frosted glass: the AI inside it. On
+ * top what people use, underneath what runs it. Callouts in the order top
+ * left, top right, bottom right, bottom left.
+ */
+export const companyMark = {
+    labels: ['Apps', 'Agents', 'Models', 'Backend'],
+    /** The key under the drawing, one item under each half: what the two materials mean. */
+    legend: [
+        { label: 'Software', kind: 'matte' },
+        { label: 'AI', kind: 'glass' },
+    ],
+    description:
+        'The Frilogix X built from four arms. On the left, two solid ink arms for the software: apps, and the backend that runs them. On the right, two frosted glass arms for the AI inside it: agents, and the models that run them.',
+} as const;
+
 /** The argument, in order: how it is today, what that costs, what we believe. */
 export const companyStory = [
     {
@@ -43,6 +60,13 @@ export const plan = {
             desc: 'Launch is the middle, not the end. We monitor, evaluate and improve, then hand over or stay on as part of your team.',
         },
     ],
+};
+
+/** The 3D drawing beside the plan's title: callouts for the experiments, our products, and yours. */
+export const planArt = {
+    labels: ['Experiments', 'Our products', 'Your product'],
+    description:
+        'A cloud of experiments streams into a glass block, our products; most drop out, and the three that survive land on a plinth, your product.',
 };
 
 export const whoWeAre = `${site.legalName} is a software and AI engineering company based in ${site.location}. We work with startups and scale-ups wherever they are.`;

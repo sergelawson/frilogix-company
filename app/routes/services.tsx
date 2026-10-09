@@ -3,9 +3,9 @@ import { pageMeta } from '~/lib/meta';
 
 export const meta: Route.MetaFunction = () =>
     pageMeta({
-        title: 'Services — Web, Mobile, Platform & AI Engineering | Frilogix',
+        title: 'Services — SaaS, Mobile, AI Engineering & Training Data | Frilogix',
         description:
-            'React frontends, Go and Node.js backends, React Native apps, platform engineering on AWS and Kubernetes, and AI engineering — RAG pipelines, multi-agent systems, and copilots.',
+            'SaaS development and React Native mobile apps, platform engineering on AWS and Kubernetes, AI engineering, and AI training data: labeling and dataset creation for AI labs.',
         path: '/services',
     });
 

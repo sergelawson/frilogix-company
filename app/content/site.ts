@@ -8,9 +8,16 @@ export const site = {
     // (canonical, Open Graph) can't come from the request.
     url: 'https://frilogix.com',
     legalName: 'Frilogix LLC',
+    // One line on what Frilogix is: the home page's meta description and the
+    // structured data's description (~/lib/structured-data).
+    description:
+        'Software and AI engineering company working worldwide. We build web, mobile and backend products, production AI agents, and training data for AI labs.',
     // The contact email is not here on purpose: it ships only as SVG outlines
     // (~/components/ui/EmailAddress), never as text. See scripts/email-svg.py.
     location: 'El Paso, Texas',
+    // The same, for structured data. It says where the company is, not who it
+    // serves: that's `areaServed: Worldwide` there.
+    address: { locality: 'El Paso', region: 'TX', country: 'US' },
     // Cal.com or Calendly link. While null, "Book a call" opens the contact form.
     bookingUrl: null as string | null,
     // Cloudflare Turnstile site key for the contact form (public by design; the

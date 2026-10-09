@@ -21,7 +21,8 @@
     "nodemailer": "10.0.10",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-router": "^7.18.2"
+    "react-router": "^7.18.2",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@eslint/js": "^9",
@@ -31,6 +32,7 @@
     "@types/nodemailer": "8.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.186.0",
     "eslint": "^9",
     "eslint-plugin-react-hooks": "^7",
     "globals": "^16",

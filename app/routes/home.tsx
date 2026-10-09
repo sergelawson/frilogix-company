@@ -1,11 +1,11 @@
 import type { Route } from './+types/home';
 import { pageMeta } from '~/lib/meta';
+import { site } from '~/content/site';
 
 export const meta: Route.MetaFunction = () =>
   pageMeta({
-    title: 'Frilogix | Software & Agentic AI Engineering Company',
-    description:
-      'Frilogix is a software development and agentic AI engineering company. We build web, mobile and backend products, and AI agents tested in our own experiments.',
+    title: 'Software & AI Engineering Company | Frilogix',
+    description: site.description,
     path: '/',
   });
 

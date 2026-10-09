@@ -3,6 +3,7 @@ import { Link, useFetcher } from 'react-router';
 import TurnstileWidget from '~/components/TurnstileWidget';
 import { buttonClass } from '~/components/ui/Button';
 import EmailAddress from '~/components/ui/EmailAddress';
+import XGlyph from '~/components/ui/XGlyph';
 import { site } from '~/content/site';
 import { validateField, validateInquiry, readInquiry, type InquiryErrors, type InquiryField } from '~/lib/inquiry';
 import type { action } from '~/routes/contact';
@@ -81,9 +82,8 @@ export default function ContactForm() {
     if (sent) {
         return (
             <div role="status" className="flex min-h-[22rem] flex-col items-start justify-center border-t border-line-strong pt-8">
-                <svg className="size-8 text-accent-ink" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                    <path strokeLinecap="square" d="m5 13 4 4L19 7" />
-                </svg>
+                {/* The mark comes together: the message is in. */}
+                <XGlyph assemble className="size-10" />
                 <h3 className="mt-6 font-wide text-h2 font-semibold">Thanks — message received.</h3>
                 <p className="mt-3 text-fg-muted">We&apos;ll reply within 24 hours.</p>
                 {result.delivered === 'logged' && (

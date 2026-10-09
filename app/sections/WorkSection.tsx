@@ -12,7 +12,7 @@ function ProductPanel({ product }: { product: Product }) {
         <Panel id={product.slug} className={product.ink ? 'theme-ink' : ''}>
             <div className={panelInner}>
                 <div className="gsap-reveal">
-                    <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
+                    <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12 hscroll:items-start">
                         <div className={hasVisual ? 'lg:col-span-5' : 'lg:col-span-8'}>
                             {/* The logo carries the name; category and status follow it as ruled labels. */}
                             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">

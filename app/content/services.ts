@@ -3,27 +3,27 @@ import { stackIcons } from './stack-icons';
 export const servicesIntro = {
     eyebrow: 'Services',
     title: 'From interface to infrastructure to intelligence.',
-    lede: 'Frontend, backend, mobile, platform and AI engineering under one roof, so the product, the infrastructure and the model are designed together.',
+    lede: 'SaaS, mobile, platform, AI engineering and training data under one roof, so the product, the infrastructure and the model are designed together.',
 };
 
+/**
+ * Columns on the Services panel, in order. Each has a hairline pictogram of
+ * what it delivers, keyed by `id` (~/components/art/ServiceGlyph).
+ *
+ * DRAFT copy for `saas` (merges the former Frontend Development and Backend
+ * Systems) and `training-data` (new): confirm with Frilogix.
+ */
 export const services = [
     {
-        id: 'frontend',
-        title: 'Frontend Development',
-        stack: 'React / Next.js',
-        desc: 'Pixel-perfect interfaces. We build modern web applications that prioritize user experience and performance efficiency.',
-        features: ['SEO Optimized', 'Mobile Responsive', 'WCAG Compliant'],
-    },
-    {
-        id: 'backend',
-        title: 'Backend Systems',
-        stack: 'Go / Node.js',
-        desc: 'Robust architectures. We specialize in distributed systems and high-performance APIs for scalable business logic.',
-        features: ['Microservices', 'Cloud Native', 'Real-time Data'],
+        id: 'saas',
+        title: 'SaaS Development',
+        stack: 'Next.js / Node.js / Go',
+        desc: 'Web products, front to back. Fast, accessible interfaces on APIs and distributed systems built to scale with your users.',
+        features: ['Responsive & Accessible', 'APIs & Microservices', 'Real-time Data'],
     },
     {
         id: 'mobile',
-        title: 'Mobile Engineering',
+        title: 'Mobile App Development',
         stack: 'React Native',
         desc: 'Cross-platform efficiency. Native-quality mobile applications that utilize device capabilities seamlessly.',
         features: ['iOS & Android', 'Offline First', 'High Performance'],
@@ -41,6 +41,13 @@ export const services = [
         stack: 'LLM / RAG / Python',
         desc: 'Context-aware systems. We build retrieval, agent, and copilot architectures on top of large language models — engineered for production, not demos.',
         features: ['RAG Pipelines', 'Multi-Agent Systems', 'AI Copilots'],
+    },
+    {
+        id: 'training-data',
+        title: 'AI Training Data',
+        stack: 'Labeling / Datasets',
+        desc: 'Data models learn from. We produce datasets and label data for AI labs, checked for quality before it ships.',
+        features: ['Data Labeling', 'Dataset Creation', 'Quality Review'],
     },
 ];
 
@@ -67,6 +74,13 @@ export const aiCapabilities = [
     { title: 'Copilots', desc: 'Assistive interfaces embedded in your product.' },
 ];
 
+/** The 3D bridge beside the AI title: the two cliffs it spans. Its segments are `aiPipeline`, numbered. */
+export const aiBridge = {
+    ends: ['Prototype', 'Production'],
+    description:
+        'A bridge between two cliffs, prototype and production: four glass segments, retrieval, evaluation, guardrails and tracing, rise out of the gap, and a request crosses.',
+};
+
 export const aiNote = 'Model agnostic, with no lock-in. Low-latency by design.';
 
 export const processIntro = {
@@ -76,29 +90,53 @@ export const processIntro = {
 };
 
 /**
- * DRAFT copy — confirm with Frilogix. `duration` stays null until real
- * timeframes are agreed; nothing is shown for it in production.
+ * DRAFT copy — confirm with Frilogix. No timeframe per step: durations
+ * depend on the project, and the site doesn't promise numbers it can't keep.
  */
 export const processSteps = [
-    { title: 'Discover', desc: 'We map the problem, the users and the constraints, and agree what success looks like.', duration: null as string | null },
-    { title: 'Prototype', desc: 'A working slice in front of real users early, so decisions rest on evidence.', duration: null as string | null },
-    { title: 'Build', desc: 'Production engineering in short increments, with tests, reviews and honest timelines.', duration: null as string | null },
-    { title: 'Operate', desc: 'Monitoring, evaluation and handover — or we stay on as part of your team.', duration: null as string | null },
+    { title: 'Discover', desc: 'We map the problem, the users and the constraints, and agree what success looks like.' },
+    { title: 'Prototype', desc: 'A working slice in front of real users early, so decisions rest on evidence.' },
+    { title: 'Build', desc: 'Production engineering in short increments, with tests, reviews and honest timelines.' },
+    { title: 'Operate', desc: 'Monitoring, evaluation and handover — or we stay on as part of your team.' },
 ];
 
-/** Monochrome logos, drawn in the text colour. React Native's logo is React's. */
-export const stack: { name: string; icon: string }[] = [
-    { name: 'TypeScript', icon: stackIcons.typescript },
-    { name: 'React', icon: stackIcons.react },
-    { name: 'React Native', icon: stackIcons.react },
-    { name: 'Node.js', icon: stackIcons.nodejs },
-    { name: 'Go', icon: stackIcons.go },
-    { name: 'Rust', icon: stackIcons.rust },
-    { name: 'Python', icon: stackIcons.python },
-    { name: 'PostgreSQL', icon: stackIcons.postgresql },
-    { name: 'AWS', icon: stackIcons.aws },
-    { name: 'Kubernetes', icon: stackIcons.kubernetes },
-    { name: 'LangChain', icon: stackIcons.langchain },
-    { name: 'OpenAI', icon: stackIcons.openai },
-    { name: 'Anthropic', icon: stackIcons.anthropic },
+/**
+ * The stack under "How we work", in four groups that sit under the four steps
+ * and echo the services. Monochrome logos, drawn in the text colour. React
+ * Native's logo is React's.
+ */
+export const stack: { label: string; items: { name: string; icon: string }[] }[] = [
+    {
+        label: 'Apps',
+        items: [
+            { name: 'TypeScript', icon: stackIcons.typescript },
+            { name: 'React', icon: stackIcons.react },
+            { name: 'React Native', icon: stackIcons.react },
+        ],
+    },
+    {
+        label: 'Backend & data',
+        items: [
+            { name: 'Node.js', icon: stackIcons.nodejs },
+            { name: 'Go', icon: stackIcons.go },
+            { name: 'Rust', icon: stackIcons.rust },
+            { name: 'Python', icon: stackIcons.python },
+            { name: 'PostgreSQL', icon: stackIcons.postgresql },
+        ],
+    },
+    {
+        label: 'Platform',
+        items: [
+            { name: 'AWS', icon: stackIcons.aws },
+            { name: 'Kubernetes', icon: stackIcons.kubernetes },
+        ],
+    },
+    {
+        label: 'AI',
+        items: [
+            { name: 'LangChain', icon: stackIcons.langchain },
+            { name: 'OpenAI', icon: stackIcons.openai },
+            { name: 'Anthropic', icon: stackIcons.anthropic },
+        ],
+    },
 ];

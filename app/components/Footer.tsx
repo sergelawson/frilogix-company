@@ -15,15 +15,15 @@ const linkClass = 'text-sm text-fg/85 transition-colors hover:text-fg';
 
 const Footer: FC = () => {
     return (
-        <footer className="theme-ink">
-            <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <footer className="theme-ink relative overflow-hidden">
+            <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
                 <div className="grid gap-12 lg:grid-cols-12">
                     <div className="lg:col-span-5">
                         <Link to="/" className="inline-block">
                             <img src="/logo-on-dark.png" alt="Frilogix" width={160} height={40} className="h-8 w-auto" loading="lazy" />
                         </Link>
                         <p className="mt-6 max-w-sm text-fg-muted">
-                            Software and agentic AI engineering: web, mobile, platform and AI systems. Makers of Uitiful and Vantuu.
+                            Software and agentic AI engineering: web, mobile, platform and AI systems, plus training data for AI labs.
                         </p>
                         <p className="mt-6 text-accent-ink">
                             <EmailAddress />
