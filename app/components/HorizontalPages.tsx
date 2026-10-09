@@ -100,6 +100,10 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
                         scrollTrigger: {
                             trigger: wrapper,
                             pin: true,
+                            // Our own spacer, so GSAP doesn't wrap (and so move) the track in a new
+                            // one: moving an element restarts every CSS animation inside it, so
+                            // the hero's fade-ins played twice and the particle X appeared twice.
+                            pinSpacer: wrapper.parentElement,
                             start: 'top top',
                             end: () => `+=${distance()}`,
                             scrub: 0.3,
@@ -368,7 +372,7 @@ export default function HorizontalPages({ children }: { children: ReactNode }) {
 
     return (
         <>
-            {/* GSAP wraps the pinned element in a spacer div; this parent keeps that out of React-managed siblings. */}
+            {/* The pin spacer (see pinSpacer above): GSAP styles it in place of wrapping the pinned element in a div of its own. */}
             <div>
                 <div ref={wrapperRef} className="@container hscroll:h-screen hscroll:overflow-clip">
                     <div ref={trackRef} className="relative hscroll:flex hscroll:h-full hscroll:w-max">
