@@ -144,10 +144,11 @@ vertical scrolling moves them horizontally. The navigation order is the scroll o
 
 **Services:**
 
-* Frontend Development (React)
-* Backend Development (Node.js / Go)
+* SaaS Development (React / Next.js, Node.js / Go): the former Frontend and Backend services
 * Mobile App Development (React Native)
-* AI Application Development
+* Platform Engineering (AWS / Kubernetes)
+* AI Engineering (LLM / RAG / Python)
+* AI Training Data: data labeling and dataset creation, produced and sold to AI labs
 
 **Each service section includes:**
 
@@ -297,10 +298,12 @@ let neutrals carry the page, teal mark only what you can click, and proof replac
   logos, client logos, case-study numbers, and real team photos. No stock photography, no fake
   terminals. The particle "X" in the hero is the signature visual. Text-only panels each carry
   one explanatory 3D drawing in a single house style — matte ink for software, frosted glass
-  for AI, mono callouts: the Services stack, the AI bridge, the Company X, the plan's
-  survivors. Drawings explain the panel's argument; they never invent data or client proof.
+  for AI, mono callouts: the AI bridge, the Company X, the plan's survivors. Drawings explain
+  the panel's argument; they never invent data or client proof, and a drawing that doesn't
+  help a visitor understand is cut. Services columns carry small hairline pictograms of what
+  each service delivers instead.
 * **Navigation:** a 72 px top bar, transparent at the top and translucent once scrolled (ink over
-  ink panels), with a page counter and a single primary CTA, "Book a call".
+  ink panels), with links to Home, Services, Work and Company and a single primary CTA, "Book a call".
 
 ### Animation Requirements
 
@@ -326,9 +329,10 @@ let neutrals carry the page, teal mark only what you can click, and proof replac
 
   * Software development company
   * AI engineering
-  * React development
-  * Backend development
+  * SaaS development
   * Mobile app development
+  * AI training data
+  * Data labeling
 
 ---
 

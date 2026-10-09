@@ -27,7 +27,7 @@ horizontally; see "One-page layout" below. Each still has its own URL (`/`, `/se
 `/work`, `/company`, `/contact`).
 
 `/privacy` (`routes/privacy.tsx`) is a normal standalone page outside the one-page scroll:
-it isn't in `pages`, so it isn't in the horizontal track or the page counter, and it is
+it isn't in `pages`, so it isn't in the horizontal track or the navbar, and it is
 linked from the footer. Its copy is `app/content/privacy.ts`.
 
 Three routes only redirect (301), preserving inbound links: `/ai-engineering` →
@@ -49,7 +49,7 @@ only `meta` (and, for contact, the form `action`) plus a default component that 
 `null`** — the content lives in `app/sections/*Section.tsx`, and `site.tsx` renders every
 section at once, in scroll order. (The `null` component must stay: a route module with no
 default export becomes a resource route.) The page list, in order, is `pages` in
-`app/content/site.ts`; the navbar, footer and page counter read it, so a new page goes there,
+`app/content/site.ts`; the navbar and footer read it, so a new page goes there,
 in `routes.ts`, and in `site.tsx`.
 
 SSR is on (`react-router.config.ts`), so modules render on the server *and* hydrate on the
@@ -92,7 +92,14 @@ export const meta: Route.MetaFunction = ({ matches }) => pageMeta({ title, descr
 React Router renders **only the deepest matching route's `meta`** — nothing is merged from
 root. So every page route returns its complete set from `pageMeta()` (`app/lib/meta.ts`):
 title, description, canonical link, Open Graph and Twitter tags (absolute URLs from
-`site.url`), and optional `noindex`. Root's own `meta` is only seen by the 404 page.
+`site.url`), optional `noindex`, and the structured data. Root's own `meta` is only seen by
+the 404 page.
+
+**Structured data** (`app/lib/structured-data.ts`, JSON-LD on every page): an `Organization`
+(Frilogix LLC; address El Paso, TX, US; `areaServed: "Worldwide"`, because clients can be
+anywhere; the five services as offers) and a `WebSite`. It's built from `site.ts` and
+`services.ts`, so it follows the copy. Facts only: no ratings, reviews or client claims, and
+never the email. Social profiles join it as `sameAs` once they're in `site.social`.
 `/work` is `noindex` only if `app/content/work.ts` has no products.
 
 `public/og.png` (1200×630) is rendered from an HTML template with Playwright; regenerate it if
@@ -177,10 +184,18 @@ every page title is an **h2** — the hero headline is the document's only h1), 
 scrolled, snapping to whole panels. Otherwise the pages simply stack vertically. Either way it:
 
 - scrolls to the page the URL names on load, link clicks, and back/forward
-  (`/services#intelligent-systems` targets a single panel);
+  (`/services#intelligent-systems` targets a single panel). On a **deep link** an inline
+  script in root.tsx marks `<html>` with `.deep-link` before first paint, which hides the
+  track (`[data-track]` in `app.css`) so the home page never flashes first; the engine removes
+  the mark once it has moved, and the page fades up into place (CSS shows it after 2.5s
+  anyway if JS is slow or broken);
 - rewrites the URL with a `replace` navigation as pages scroll into view, so the navbar's
   active link and `<title>` follow along. These carry `state.fromScroll`, which the engine
-  uses to avoid scrolling in response to its own navigations;
+  uses to avoid scrolling in response to its own navigations. They're made a frame after a
+  page toggles, and only while the engine is still set up: tearing it down (a link to
+  `/privacy`, crossing the breakpoint, React's dev double mount) toggles every trigger one last
+  time, which used to rewrite the URL to `/`. Standalone pages (`/privacy`) open at the top
+  (root.tsx);
 - in horizontal mode only, **pages one panel per gesture**: wheel and trackpad input
   accumulates until it passes `PAGE_THRESHOLD` (30% of a screen, capped at 200 px of wheel
   travel), then glides exactly one page and ignores the rest of that gesture, so trackpad
@@ -232,25 +247,30 @@ drawings in their end state, and no heartbeat.
 
 Loads `/hero-shape.png` (640 px), reads its pixel data off an offscreen canvas (sampling every
 4th pixel), and turns opaque pixels into spring-damped particles that scatter from the cursor.
-It draws once and **only runs frames while the mouse stirs it or particles are settling** —
-idle, on touch screens, off-screen, and under reduced motion it costs nothing per frame.
+It shows only from `lg` up, beside the headline; below that (phones, tablets) its column is
+hidden and nothing is built. It draws once and **only runs frames while the mouse stirs it or
+particles are settling** — idle, on touch screens, off-screen, and under reduced motion it
+costs nothing per frame.
 Replacing the hero art means replacing `public/hero-shape.png`; the image must have
-transparency, since particles are only emitted where `alpha > 128`.
+transparency, since particles are only emitted where `alpha > 128`, and near-white pixels
+(every channel above 200) are skipped too: the X is white in the image, so it stays a cut-out.
 
 ### Illustrations (`app/components/art/`)
 
 Text-only panels carry one explanatory drawing each, in one house style: **matte ink for
-software, frosted glass for AI**, soft shadows, mono callouts, one teal "signal".
+software, frosted glass for AI**, soft shadows, mono callouts, one teal "signal". The test for
+any drawing: **if it were deleted, would a visitor understand less?** If not, it doesn't ship.
+(Services had an exploded 3D stack of layers; it failed that test and was removed. Its
+`scenes/stack.ts` is no longer used.)
 
 | Panel | Drawing | Scene |
 |---|---|---|
-| Services | exploded stack (interface, backend, platform, intelligence); a request drops through it | `scenes/stack.ts` |
 | AI engineering (ink) | a bridge over the prototype→production gap; glass segments rise, a request crosses | `scenes/bridge.ts` |
-| Company | the X as four arms (ink: interface, backend; glass: models, agents) gliding together | `scenes/xMark.ts` |
+| Company | the X as four arms gliding together, read as a two-by-two: ink on the left (software: apps, backend), glass on the right (AI: agents, models); on top what people use, underneath what runs it; a key under each half | `scenes/xMark.ts` |
 | The plan (ink) | experiments stream into a glass block (our products); three survivors land on yours | `scenes/survivors.ts` |
 
 - `Art3D` mounts a scene and its callouts (`side`: left/right edge, or a short leader
-  above/below). **three.js lives only in the lazy chunk shared by `runtime.ts` and the scenes**
+  above/below), plus an optional `legend` (a key saying what matte and glass stand for). **three.js lives only in the lazy chunk shared by `runtime.ts` and the scenes**
   (~145 kB gzip), imported once a drawing is within a screen of the viewport. Never import
   `three` from anything that reaches the main bundle or the server. Pass `load` and
   `callouts` as module-level constants: they're effect dependencies.
@@ -271,8 +291,12 @@ software, frosted glass for AI**, soft shadows, mono callouts, one teal "signal"
     first frame freezes the page while it compiles. Lights must match `addLights`.
   - Scenes are imported and built in idle time (`requestIdleCallback`), never mid page-turn.
   - Rendering at ≤1.5× pixel ratio, glass transmission at half resolution.
-- Hovering or focusing a Services column or an AI pipeline step `highlight`s its part (the
-  plate slides out; the segment lifts and glows).
+- Hovering or focusing an AI pipeline step `highlight`s its segment (it lifts and glows).
+- **Services** has no 3D drawing: each column carries a pictogram of what it delivers
+  (`ServiceGlyph`, keyed by service `id`; a new service needs one there), 72×40px at 1:1 so
+  hairlines stay on whole pixels: white surfaces with an offset shadow, one teal signal. Each
+  loops a few seconds of the service at work (SMIL, no JS per frame), paused off screen; under
+  reduced motion it holds a finished frame (`still`). Motion must show the service, not decorate.
 - Canvases are opaque, painted the panel's colour (`PAPER` / `INK` in `runtime.ts`), because
   glass can only show what's rendered behind it. Keep them in sync with the `.theme-ink` and
   `--color-bg` values. Glass on ink panels is `kit.glowGlass()`.
@@ -294,7 +318,8 @@ the hero particles flying in on first load, and product screenshots on Home pann
 The navbar is `fixed` at 72 px (`h-18`), so content must clear it: `panelInner` handles that
 for panels (the hero pads itself), and panels carry `scroll-mt-20` for vertical-mode scroll
 targets. The navbar turns translucent past 20px of scroll, switches to the ink theme (and
-`public/logo-on-dark.png`) when an ink panel or the footer is under it, shows a page counter,
+`public/logo-on-dark.png`) when an ink panel or the footer is under it, links every page but
+Contact (Home, Services, Work, Company; "Book a call" sits beside them),
 and has an accessible mobile menu (`aria-expanded`, Esc, scroll lock) and a skip link that
 focuses `<main>`. After the last panel the pin releases and the `Footer` scrolls up normally.
 
@@ -312,16 +337,25 @@ email instead** — the form never claims a message was sent when it wasn't.
 
 ### Cookie consent and analytics
 
-Google Analytics 4 (`site.gaMeasurementId`) runs **only after the visitor accepts** in the
-cookie bar (`~/components/CookieConsent`, rendered in root `Layout`). Before that no Google
-script loads and no cookie is set; Reject is as prominent as Accept; "Cookie settings" in the
-footer (and on /privacy) reopens the bar; withdrawing deletes the `_ga` cookies. The choice is
-in localStorage (`~/lib/consent`), expires after 6 months, and resets when `POLICY_VERSION`
-changes: **bump it whenever cookies or analytics change**, and update `app/content/privacy.ts`
-(processing activities, cookie table, `lastUpdated`) to match. GA loads only on the
-production hostnames listed in `~/components/GoogleAnalytics`. Never add a tracker, embed or
-third-party script without putting it behind consent (or documenting why it's strictly
-necessary) and listing it in the privacy policy.
+Google Analytics 4 (`site.gaMeasurementId`) follows **two regimes**, decided in the browser
+from the device's time zone (`analyticsNeedsOptIn` in `~/lib/consent`; any `Europe/*` zone
+plus a few EEA zones elsewhere):
+
+- **Europe (EEA, UK, Switzerland): opt-in**, as EU law and Google's EU consent policy require.
+  The notice asks first, with two identical buttons, "Reject" and "Accept"; until "Accept" no
+  Google script loads and no cookie is set; a "yes" expires after 6 months.
+- **Everywhere else: opt-out.** GA runs from the first page; the notice says so, with an
+  "Opt out" link and "OK".
+
+Both are the same small, quiet notice centred at the bottom (`~/components/CookieConsent`,
+rendered in root `Layout`). It **doesn't name the provider**; the privacy policy does, as the law requires. "Cookie settings" in the footer (and
+on /privacy) reopens it; opting out deletes the `_ga` cookies, and **an opt-out is kept for
+good** (never expired, never reset by a version bump). The choice is in localStorage; a "yes"
+resets when `POLICY_VERSION` changes: **bump it whenever cookies or analytics change**, and
+update `app/content/privacy.ts` (processing activities, cookie table, `lastUpdated`) to match.
+GA loads only on the production hostnames listed in `~/components/GoogleAnalytics`. Never add
+a tracker, embed or third-party script without covering it in this consent flow (or
+documenting why it's strictly necessary) and listing it in the privacy policy.
 
 **The contact email never ships as text.** It is drawn as SVG outlines by
 `~/components/ui/EmailAddress` from `app/content/email-glyphs.ts`, which
@@ -349,7 +383,7 @@ See `LAUNCH-AUDIT.md` for the full pre-launch audit. The load-bearing items:
   `app/content/site.ts` are placeholders; `bookingUrl` is unset.
 - Every URL serves the same one-page document, so search engines will likely treat
   `/services`, `/company`, etc. as near-duplicates of `/`; each now has its own canonical tag.
-  No `sitemap.xml`, `robots.txt` or JSON-LD yet.
+  No `sitemap.xml` or `robots.txt` yet (JSON-LD is in place: `app/lib/structured-data.ts`).
 - No SVG logo or SVG favicon (needs a vector wordmark). The favicon set (`favicon.ico`,
   `icon-192/512.png`, `apple-touch-icon.png`) is rendered from `public/hero-shape.png`.
 
