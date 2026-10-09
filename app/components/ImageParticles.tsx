@@ -86,6 +86,9 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
                     }
                 }
             }
+            // Grouped by colour: the image has a few hundred, so a frame sets the fill a
+            // few hundred times rather than once per particle (~5,000).
+            particles.sort((a, b) => (a.color < b.color ? -1 : a.color > b.color ? 1 : 0));
         };
 
         // Advances the physics one frame and draws it. Returns the fastest
@@ -93,6 +96,7 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
         const step = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             let fastest = 0;
+            let fill = '';
 
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
@@ -134,8 +138,10 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
                 fastest = Math.max(fastest, Math.abs(p.vx) + Math.abs(p.vy));
 
                 // Draw
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
+                if (p.color !== fill) {
+                    fill = p.color;
+                    ctx.fillStyle = fill;
+                }
                 ctx.fillRect(p.x, p.y, p.size, p.size); // Rect is faster than arc
             }
 
@@ -180,15 +186,29 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
             mouse.y = -1000;
         };
 
+        // Rebuilt only when the size really changes: a scrollbar appearing (as the
+        // pin adds page height) resized the window by ~15px, which rebuilt the X
+        // mid-flight. The canvas is centred, so a few pixels either way don't show.
         const handleResize = () => {
+            if (Math.abs(container.clientWidth - canvas.width) < 48 && Math.abs(container.clientHeight - canvas.height) < 48) return;
             init();
             drawStill();
+        };
+        // On first load the particles fly in from all over the canvas and settle
+        // into the X (the Company panel's mark does the same, in 3D).
+        const scatter = () => {
+            for (const p of particles) {
+                p.x = Math.random() * canvas.width;
+                p.y = Math.random() * canvas.height;
+            }
         };
         const handleLoad = () => {
             if (loaded) return;
             loaded = true;
             init();
+            if (!reduceMotion) scatter();
             drawStill();
+            startLoop();
         };
         const observer = new IntersectionObserver(([entry]) => {
             visible = entry.isIntersecting;
@@ -207,6 +227,8 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
         observer.observe(container);
 
         return () => {
+            // A load that lands after unmount (React runs effects twice in dev) mustn't redraw this canvas.
+            image.onload = null;
             cancelAnimationFrame(animationFrameId);
             observer.disconnect();
             canvas.removeEventListener('mousemove', handleMouseMove);

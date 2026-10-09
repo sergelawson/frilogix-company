@@ -165,7 +165,8 @@ hex, and keep that check passing.
 ### Shared components (`app/components/ui/`)
 
 `ButtonLink` / `buttonClass()` / `BookCallButton` (square buttons; `ButtonLink` renders a
-router `Link` or, for `http…` URLs, a plain `<a>`), `SectionHeader` (eyebrow + h2 + lede;
+router `Link` or, for `http…` URLs, a plain `<a>`), `SectionHeader` (eyebrow + h2 + lede, and an
+optional `aside` illustration;
 every page title is an **h2** — the hero headline is the document's only h1), `Eyebrow`,
 `ArrowLink`, `Placeholder`, `icons`.
 
@@ -224,7 +225,8 @@ unmount. **Never `ScrollTrigger.getAll().forEach(t => t.kill())`**: on a one-pag
 kills the scroll engine too. `registerPlugin` must stay inside an effect, because at module
 scope it runs during SSR.
 
-Reduced motion gets the vertical layout, no reveals, no hero fade, and a still particle X.
+Reduced motion gets the vertical layout, no reveals, no hero fade, a still particle X, 3D
+drawings in their end state, and no heartbeat.
 
 ### Particle X (`ImageParticles.tsx`)
 
@@ -234,6 +236,58 @@ It draws once and **only runs frames while the mouse stirs it or particles are s
 idle, on touch screens, off-screen, and under reduced motion it costs nothing per frame.
 Replacing the hero art means replacing `public/hero-shape.png`; the image must have
 transparency, since particles are only emitted where `alpha > 128`.
+
+### Illustrations (`app/components/art/`)
+
+Text-only panels carry one explanatory drawing each, in one house style: **matte ink for
+software, frosted glass for AI**, soft shadows, mono callouts, one teal "signal".
+
+| Panel | Drawing | Scene |
+|---|---|---|
+| Services | exploded stack (interface, backend, platform, intelligence); a request drops through it | `scenes/stack.ts` |
+| AI engineering (ink) | a bridge over the prototype→production gap; glass segments rise, a request crosses | `scenes/bridge.ts` |
+| Company | the X as four arms (ink: interface, backend; glass: models, agents) gliding together | `scenes/xMark.ts` |
+| The plan (ink) | experiments stream into a glass block (our products); three survivors land on yours | `scenes/survivors.ts` |
+
+- `Art3D` mounts a scene and its callouts (`side`: left/right edge, or a short leader
+  above/below). **three.js lives only in the lazy chunk shared by `runtime.ts` and the scenes**
+  (~145 kB gzip), imported once a drawing is within a screen of the viewport. Never import
+  `three` from anything that reaches the main bundle or the server. Pass `load` and
+  `callouts` as module-level constants: they're effect dependencies.
+- A scene is `defineScene(background, build)`: build objects on `kit.root` from the kit's
+  materials and helpers, return a `SceneSpec` (tilt, frame to fit, callout anchors,
+  `update(elapsed)`). The entrance plays the first time the drawing is 80% in view (as a page
+  turn lands); like the particles, a scene **renders only while something moves** (entrance,
+  highlight, tilt while the mouse is over it) **and only while on screen**.
+- **Performance rules** (each was a measured freeze; see the comment at the top of `runtime.ts`):
+  - **One WebGL context for every drawing** (the engine): it renders into an `OffscreenCanvas`
+    and hands frames to each drawing's `bitmaprenderer` canvas (`transferToImageBitmap`, no
+    copy). One context per drawing meant every drawing paid ~0.5s of setup and compiling.
+    Don't `drawImage` a WebGL canvas: it waits for the GPU (~2.5ms a frame).
+  - **Shaders compile ahead, off the main thread** (`compileAsync`), including the variants
+    three.js otherwise compiles mid-frame: the glass's back faces and everything seen through
+    glass (render target, no tone mapping). The engine's warm-up scene holds one of every kit
+    material; **a new material type, or a new map on one, must be added there too**, or its
+    first frame freezes the page while it compiles. Lights must match `addLights`.
+  - Scenes are imported and built in idle time (`requestIdleCallback`), never mid page-turn.
+  - Rendering at ≤1.5× pixel ratio, glass transmission at half resolution.
+- Hovering or focusing a Services column or an AI pipeline step `highlight`s its part (the
+  plate slides out; the segment lifts and glows).
+- Canvases are opaque, painted the panel's colour (`PAPER` / `INK` in `runtime.ts`), because
+  glass can only show what's rendered behind it. Keep them in sync with the `.theme-ink` and
+  `--color-bg` values. Glass on ink panels is `kit.glowGlass()`.
+- Shadows are blurred silhouettes on planes, not shadow maps (cheaper, and VSM streaked the paper).
+- **Height:** Services and AI are already full at 700px, so `SectionHeader` puts their drawing
+  in an `.art-slot` above the lede that takes only the height left over (the header grows into
+  spare space, `max-h-[30rem]`), and a container query hides it below 11rem; it then never loads.
+  Company and The plan have room, so their drawings have fixed heights, checked at 1280×700.
+- Without JS (`.needs-js`) or WebGL a drawing isn't shown; under reduced motion it renders its
+  end state and doesn't tilt.
+
+Smaller pieces, CSS/SVG only: `EvidenceRule` (How we work: each step's rule gets more solid, the
+last one carries a live heartbeat, paused off-screen), `ui/XGlyph` (the X's four arms flat:
+assembling on the contact form's "sent" state, and as a hairline outline cropped by the footer),
+the hero particles flying in on first load, and product screenshots on Home panning down on hover.
 
 ### Layout shell
 

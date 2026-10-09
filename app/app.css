@@ -57,6 +57,8 @@
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 
   --animate-nudge-x: nudge-x 1.6s ease-in-out infinite;
+  --animate-arm-in: arm-in 0.7s var(--ease-out-quint) both;
+  --animate-beat: beat 1.6s linear infinite;
   /* Runs from first paint in CSS, so server-rendered content never flashes out while JS loads. */
   --animate-fade-up: fade-up 0.8s var(--ease-out-quint) both;
 
@@ -64,6 +66,21 @@
     from {
       opacity: 0;
       transform: translateY(16px);
+    }
+  }
+
+  /* One arm of the X gliding in from its outer corner (see XGlyph), as on the Company panel. */
+  @keyframes arm-in {
+    from {
+      opacity: 0;
+      transform: translate(-8px, -8px);
+    }
+  }
+
+  /* A heartbeat travelling along a rule: one waveform period. */
+  @keyframes beat {
+    to {
+      transform: translateX(-64px);
     }
   }
 
@@ -135,5 +152,32 @@
   .gsap-reveal {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Drawn by JS only (e.g. the 3D drawings): without JS, don't leave an empty box. */
+@media (scripting: none) {
+  .needs-js {
+    display: none;
+  }
+}
+
+/*
+ * An illustration that takes the height left over in a full panel
+ * (SectionHeader's `aside` beside a lede). In horizontal mode the slot is a
+ * size container, and when it's too short to show anything useful, the
+ * illustration hides (and, never intersecting, never loads).
+ */
+@layer components {
+  .art-slot {
+    @variant hscroll {
+      container-type: size;
+    }
+  }
+}
+
+@container (max-height: 11rem) {
+  .art-slot > * {
+    display: none;
   }
 }

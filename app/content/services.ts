@@ -9,6 +9,7 @@ export const servicesIntro = {
 export const services = [
     {
         id: 'frontend',
+        layer: 0,
         title: 'Frontend Development',
         stack: 'React / Next.js',
         desc: 'Pixel-perfect interfaces. We build modern web applications that prioritize user experience and performance efficiency.',
@@ -16,6 +17,7 @@ export const services = [
     },
     {
         id: 'backend',
+        layer: 1,
         title: 'Backend Systems',
         stack: 'Go / Node.js',
         desc: 'Robust architectures. We specialize in distributed systems and high-performance APIs for scalable business logic.',
@@ -23,6 +25,7 @@ export const services = [
     },
     {
         id: 'mobile',
+        layer: 0,
         title: 'Mobile Engineering',
         stack: 'React Native',
         desc: 'Cross-platform efficiency. Native-quality mobile applications that utilize device capabilities seamlessly.',
@@ -30,6 +33,7 @@ export const services = [
     },
     {
         id: 'platform',
+        layer: 2,
         title: 'Platform Engineering',
         stack: 'AWS / Kubernetes',
         desc: 'Reliable foundations. We build cloud infrastructure, Kubernetes platforms and CI/CD pipelines so teams ship often and recover fast.',
@@ -37,12 +41,28 @@ export const services = [
     },
     {
         id: 'ai-engineering',
+        layer: 3,
         title: 'AI Engineering',
         stack: 'LLM / RAG / Python',
         desc: 'Context-aware systems. We build retrieval, agent, and copilot architectures on top of large language models — engineered for production, not demos.',
         features: ['RAG Pipelines', 'Multi-Agent Systems', 'AI Copilots'],
     },
 ];
+
+/**
+ * The 3D stack beside the Services title: one plate per layer, top to bottom.
+ * `services` above say which plate they sit on (`layer`).
+ */
+export const servicesStack = {
+    layers: [
+        { index: '01·03', label: 'Interface' },
+        { index: '02', label: 'Backend' },
+        { index: '04', label: 'Platform' },
+        { index: '05', label: 'Intelligence' },
+    ],
+    description:
+        'An exploded stack of four layers settling into one: interface, backend and platform in solid ink, intelligence in frosted glass, with a request travelling down through every layer and back.',
+};
 
 export const aiIntro = {
     eyebrow: 'AI engineering',
@@ -66,6 +86,13 @@ export const aiCapabilities = [
     { title: 'Fine-Tuning', desc: 'Domain adaptation for your vocabulary and tone.' },
     { title: 'Copilots', desc: 'Assistive interfaces embedded in your product.' },
 ];
+
+/** The 3D bridge beside the AI title: the two cliffs it spans. Its segments are `aiPipeline`, numbered. */
+export const aiBridge = {
+    ends: ['Prototype', 'Production'],
+    description:
+        'A bridge between two cliffs, prototype and production: four glass segments, retrieval, evaluation, guardrails and tracing, rise out of the gap, and a request crosses.',
+};
 
 export const aiNote = 'Model agnostic, with no lock-in. Low-latency by design.';
 

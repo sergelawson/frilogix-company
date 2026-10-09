@@ -67,7 +67,8 @@ export default function HomeSection() {
                                             width={product.image.width}
                                             height={product.image.height}
                                             loading="lazy"
-                                            className="mt-5 aspect-[16/9] w-full border border-line object-cover object-top hscroll:aspect-auto hscroll:h-[32vh]"
+                                            // Cropped to its top; hovering pans slowly down the page, like a quick look through it.
+                                            className="mt-5 aspect-[16/9] w-full border border-line object-cover object-top transition-[object-position] duration-[2400ms] ease-in-out hscroll:aspect-auto hscroll:h-[32vh] motion-safe:group-hover:object-bottom motion-safe:group-focus-visible:object-bottom"
                                         />
                                     )}
                                     <h3 className="mt-5 font-wide text-h2 font-semibold">

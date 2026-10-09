@@ -295,14 +295,20 @@ let neutrals carry the page, teal mark only what you can click, and proof replac
   labels. Display sizes scale with both width and height so each screen fits one viewport.
 * **Imagery:** evidence over decoration — diagrams of how systems are built, monochrome stack
   logos, client logos, case-study numbers, and real team photos. No stock photography, no fake
-  terminals. The particle "X" in the hero is the single signature visual.
+  terminals. The particle "X" in the hero is the signature visual. Text-only panels each carry
+  one explanatory 3D drawing in a single house style — matte ink for software, frosted glass
+  for AI, mono callouts: the Services stack, the AI bridge, the Company X, the plan's
+  survivors. Drawings explain the panel's argument; they never invent data or client proof.
 * **Navigation:** a 72 px top bar, transparent at the top and translucent once scrolled (ink over
   ink panels), with a page counter and a single primary CTA, "Book a call".
 
 ### Animation Requirements
 
 * The horizontal page scroll is the site's main motion (GSAP ScrollTrigger, npm package); other
-  motion stays quiet: at most one reveal per panel, 150–300 ms hover feedback, no parallax
+  motion stays quiet: at most one reveal per panel, 150–300 ms hover feedback, no parallax.
+  A drawing's entrance plays once; after that it moves only in response to the visitor (hover,
+  mouse tilt). The one standing loop is the heartbeat on "Operate", paused off-screen
+* Teal marks what you click, and the one moving "signal" in a drawing
 * Micro-interactions for CTAs and buttons
 * Animations must:
 
