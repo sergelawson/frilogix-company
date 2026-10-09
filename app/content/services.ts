@@ -17,7 +17,7 @@ export const services = [
     {
         id: 'saas',
         title: 'SaaS Development',
-        stack: 'Next.js / Node.js / Go',
+        stack: 'React / Node.js / Go',
         desc: 'Web products, front to back. Fast, accessible interfaces on APIs and distributed systems built to scale with your users.',
         features: ['Responsive & Accessible', 'APIs & Microservices', 'Real-time Data'],
     },
