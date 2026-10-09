@@ -290,7 +290,19 @@ any drawing: **if it were deleted, would a visitor understand less?** If not, it
     material; **a new material type, or a new map on one, must be added there too**, or its
     first frame freezes the page while it compiles. Lights must match `addLights`.
   - Scenes are imported and built in idle time (`requestIdleCallback`), never mid page-turn.
-  - Rendering at ≤1.5× pixel ratio, glass transmission at half resolution.
+  - Rendering at the screen's density but at least 1.5× (supersampling fine bevels on 1×
+    screens) and at most 2×, with glass transmission at full resolution. Measured 2026-10-09
+    on an Apple M1, at the drawings' 1440×900 sizes (CPU + GPU per frame, median): **4.5–5.9 ms**
+    on a 2× screen, 4.0–5.0 ms on a 1× screen, against 2.8–3.5 ms with the earlier ≤1.5× and
+    half-resolution glass. Nearly all of it is GPU: the main thread spends 0.2–0.4 ms. Only one
+    drawing animates at a time, and only while it moves, but that is a third of a 60 Hz frame on
+    an M1, so weaker integrated GPUs may drop frames during an entrance or tilt. If they do,
+    the levers, measured on 1× screens: glass back at half resolution (2.6–3.2 ms), and also
+    dropping the 1.5× floor (2.1–2.7 ms).
+  - Building a scene takes 13–54 ms of main thread (the Company X least, The plan most; about
+    16 ms of that is its rounded geometry: 12 bevel segments plus creased normals, ~10,600
+    vertices a box), plus ~45 ms once for the engine. Both run in idle time, before the
+    drawing is on screen.
 - Hovering or focusing an AI pipeline step `highlight`s its segment (it lifts and glows).
 - **Services** has no 3D drawing: each column carries a pictogram of what it delivers
   (`ServiceGlyph`, keyed by service `id`; a new service needs one there), 72×40px at 1:1 so
