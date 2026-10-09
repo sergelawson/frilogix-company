@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import Art3D, { type Callout } from '~/components/art/Art3D';
 import EvidenceRule, { type RuleKind } from '~/components/art/EvidenceRule';
-import { Page, Panel, panelInner } from '~/components/Panel';
+import ServiceGlyph from '~/components/art/ServiceGlyph';
+import { Page, Panel, PanelGap, panelInner } from '~/components/Panel';
 import ArrowLink from '~/components/ui/ArrowLink';
-import Eyebrow from '~/components/ui/Eyebrow';
 import SectionHeader from '~/components/ui/SectionHeader';
-import Placeholder from '~/components/ui/Placeholder';
 import { ArrowRight } from '~/components/ui/icons';
 import { evenOddIcons } from '~/content/stack-icons';
 import {
@@ -18,16 +17,13 @@ import {
     processSteps,
     services,
     servicesIntro,
-    servicesStack,
     stack,
 } from '~/content/services';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
 // The 3D drawings load only near the screen; these must stay module-level (stable).
-const loadStack = () => import('~/components/art/scenes/stack');
 const loadBridge = () => import('~/components/art/scenes/bridge');
-const stackCallouts: Callout[] = servicesStack.layers.map((layer, i) => ({ ...layer, side: 'right', part: i }));
 const bridgeCallouts: Callout[] = [
     { label: aiBridge.ends[0], side: 'above' },
     { label: aiBridge.ends[1], side: 'above' },
@@ -48,46 +44,38 @@ const pointAt = (set: (part: number | null) => void, part: number) => ({
 });
 
 export default function ServicesSection() {
-    const [layer, setLayer] = useState<number | null>(null);
     const [step, setStep] = useState<number | null>(null);
 
     return (
         <Page path="/services" label="Services">
             <Panel id="services">
                 <div className={panelInner}>
-                    <SectionHeader
-                        {...servicesIntro}
-                        wide
-                        aside={
-                            <Art3D
-                                load={loadStack}
-                                callouts={stackCallouts}
-                                description={servicesStack.description}
-                                highlight={layer}
-                                className={artSize}
-                            />
-                        }
-                    />
-                    <ol className="gsap-reveal mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 hscroll:mt-8">
+                    <SectionHeader {...servicesIntro} wide />
+                    <PanelGap />
+                    <ol className="gsap-reveal grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                         {services.map((service, i) => (
-                            <li key={service.id} className="flex flex-col border-t border-line-strong pt-5" {...pointAt(setLayer, service.layer)}>
-                                <p className="flex items-baseline justify-between gap-3 font-mono text-[0.6875rem] uppercase tracking-[0.14em]">
-                                    <span className="text-accent-ink">{pad(i + 1)}</span>
-                                    <span className="text-right text-fg-muted">{service.stack}</span>
-                                </p>
-                                <h3 className="mt-5 font-wide text-h3 font-semibold hscroll:mt-4">{service.title}</h3>
-                                <p className="mt-3 text-sm leading-relaxed text-fg-muted">{service.desc}</p>
-                                <ul className="mt-5 space-y-1 border-t border-line pt-4 text-sm hscroll:mt-4 hscroll:pt-3">
-                                    {service.features.map((feature) => (
-                                        <li key={feature}>{feature}</li>
-                                    ))}
-                                </ul>
-                                <div className="mt-auto pt-6 hscroll:pt-5">
-                                    {service.id === 'ai-engineering' ? (
-                                        <ArrowLink to="/services#intelligent-systems">How we ship AI</ArrowLink>
-                                    ) : (
-                                        <ArrowLink to="/contact">Discuss a project</ArrowLink>
-                                    )}
+                            <li key={service.id} className="group flex flex-col">
+                                {/* What the service delivers, drawn standing on the column's rule. */}
+                                <ServiceGlyph id={service.id} className="mb-3 h-10 w-[4.5rem]" />
+                                <div className="flex flex-1 flex-col border-t border-line-strong pt-5">
+                                    <p className="flex items-baseline justify-between gap-3 font-mono text-[0.6875rem] uppercase tracking-[0.14em]">
+                                        <span className="text-accent-ink">{pad(i + 1)}</span>
+                                        <span className="text-right text-fg-muted">{service.stack}</span>
+                                    </p>
+                                    <h3 className="mt-5 font-wide text-h3 font-semibold hscroll:mt-4">{service.title}</h3>
+                                    <p className="mt-3 text-sm leading-relaxed text-fg-muted">{service.desc}</p>
+                                    <ul className="mt-5 space-y-1 border-t border-line pt-4 text-sm hscroll:mt-4 hscroll:pt-3">
+                                        {service.features.map((feature) => (
+                                            <li key={feature}>{feature}</li>
+                                        ))}
+                                    </ul>
+                                    <div className="mt-auto pt-6 hscroll:pt-5">
+                                        {service.id === 'ai-engineering' ? (
+                                            <ArrowLink to="/services#intelligent-systems">How we ship AI</ArrowLink>
+                                        ) : (
+                                            <ArrowLink to="/contact">Discuss a project</ArrowLink>
+                                        )}
+                                    </div>
                                 </div>
                             </li>
                         ))}
@@ -139,35 +127,40 @@ export default function ServicesSection() {
             <Panel id="process">
                 <div className={panelInner}>
                     <SectionHeader {...processIntro} />
-                    <ol className="gsap-reveal mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4 hscroll:mt-10">
+                    <PanelGap />
+                    {/* Four steps, each headed by its number and a rule that gets more solid as the work does. */}
+                    <ol className="gsap-reveal grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
                         {processSteps.map((item, i) => (
                             <li key={item.title}>
-                                <EvidenceRule kind={rules[i]} index={i} />
-                                <div className="mt-5 flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
                                     <span className="font-mono text-xs text-accent-ink">{pad(i + 1)}</span>
-                                    {item.duration ? (
-                                        <span className="font-mono text-xs text-fg-muted">{item.duration}</span>
-                                    ) : (
-                                        <Placeholder label="Timeframe" className="py-0.5" />
-                                    )}
+                                    <EvidenceRule kind={rules[i]} index={i} className="flex-1" />
                                 </div>
                                 <h3 className="mt-4 font-wide text-h3 font-semibold">{item.title}</h3>
-                                <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-muted">{item.desc}</p>
+                                <p className="mt-2 leading-relaxed text-pretty text-fg-muted">{item.desc}</p>
                             </li>
                         ))}
                     </ol>
-                    <div className="mt-12 flex flex-col gap-5 border-t border-line pt-8 lg:flex-row lg:items-center lg:gap-10 hscroll:mt-10">
-                        <Eyebrow className="shrink-0">Stack</Eyebrow>
-                        <ul className="flex flex-wrap items-center gap-x-8 gap-y-4">
-                            {stack.map((tech) => (
-                                <li key={tech.name} className="flex items-center gap-2 text-fg-muted">
-                                    <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
-                                        <path d={tech.icon} fillRule={evenOddIcons.has(tech.icon) ? 'evenodd' : undefined} />
-                                    </svg>
-                                    <span className="text-sm font-medium">{tech.name}</span>
-                                </li>
+                    {/* The stack, grouped under the same four columns; the logos make it plain what the row is. */}
+                    <div className="mt-12 border-t border-line pt-6 hscroll:mt-10">
+                        <h3 className="sr-only">Stack</h3>
+                        <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+                            {stack.map((group) => (
+                                <div key={group.label}>
+                                    <p className="font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-fg-muted">{group.label}</p>
+                                    <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2.5">
+                                        {group.items.map((tech) => (
+                                            <li key={tech.name} className="flex items-center gap-2 text-fg-muted">
+                                                <svg viewBox="0 0 24 24" className="size-4.5" fill="currentColor" aria-hidden="true">
+                                                    <path d={tech.icon} fillRule={evenOddIcons.has(tech.icon) ? 'evenodd' : undefined} />
+                                                </svg>
+                                                <span className="text-sm font-medium text-fg">{tech.name}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     </div>
                 </div>
             </Panel>

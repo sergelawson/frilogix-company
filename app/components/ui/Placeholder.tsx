@@ -1,6 +1,6 @@
 /**
- * Dev builds only: draws a dashed slot where real content (product
- * screenshots, process timeframes) still has to be supplied. Production builds render
+ * Dev builds only: draws a dashed slot where real content (e.g. product
+ * screenshots) still has to be supplied. Production builds render
  * nothing, so a placeholder can never ship to visitors.
  */
 export const showPlaceholders = import.meta.env.DEV;

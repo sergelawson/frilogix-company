@@ -1,11 +1,13 @@
 import type { MetaDescriptor } from 'react-router';
 import { site } from '~/content/site';
+import { structuredData } from './structured-data';
 
 /**
  * The full meta set for one page. React Router renders only the deepest
  * route's `meta` — nothing is merged from root — so every route returns its
- * complete set from here. Absolute URLs use the production origin (`site.url`):
- * pages are prerendered, so there's no request to read it from.
+ * complete set from here, including the structured data (~/lib/structured-data).
+ * Absolute URLs use the production origin (`site.url`): pages are prerendered,
+ * so there's no request to read it from.
  */
 export function pageMeta({
     title,
@@ -37,5 +39,7 @@ export function pageMeta({
         { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: image },
         ...(noindex ? [{ name: 'robots', content: 'noindex, follow' }] : []),
+        // Who Frilogix is and that it works worldwide, for search engines.
+        { 'script:ld+json': structuredData },
     ];
 }

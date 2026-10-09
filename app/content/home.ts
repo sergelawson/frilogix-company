@@ -1,7 +1,8 @@
+/** The hero's H1 is the only H1 on the site: it leads with the terms people search for. */
 export const hero = {
-    eyebrow: 'Software & agentic AI engineering',
-    title: 'Software that ships. AI agents that work.',
-    lede: 'We build web, mobile and backend products for startups and scale-ups, and agentic AI systems that run inside them. We run our own AI experiments, so what reaches your product is already tested.',
+    eyebrow: 'Software & AI engineering',
+    title: 'Software development and AI agents, built for production.',
+    lede: 'A product today is an app, a backend and, more and more, a model. Frilogix builds all of it for startups and scale-ups, plus training data for AI labs, and proves every approach on our own products first.',
 };
 
 export const productsIntro = {

@@ -67,17 +67,23 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
                 for (let x = 0; x < canvas.width; x += step) {
                     const index = (y * canvas.width + x) * 4;
                     const alpha = data[index + 3];
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
 
-                    if (alpha > 128) {
-                        const r = data[index];
-                        const g = data[index + 1];
-                        const b = data[index + 2];
+                    // The X itself is white in the image: leave it out, so it reads as a
+                    // cut-out through the particles rather than a field of white dots.
+                    if (alpha > 128 && Math.min(r, g, b) <= 200) {
 
+                        // Homes nudged off the sampling grid by up to a pixel, so the X keeps
+                        // an organic texture rather than settling into a visible lattice.
+                        const originX = x + Math.random() * 2 - 1;
+                        const originY = y + Math.random() * 2 - 1;
                         particles.push({
-                            x: x,
-                            y: y,
-                            originX: x,
-                            originY: y,
+                            x: originX,
+                            y: originY,
+                            originX,
+                            originY,
                             color: `rgb(${r},${g},${b})`,
                             vx: 0,
                             vy: 0,
@@ -86,8 +92,8 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
                     }
                 }
             }
-            // Grouped by colour: the image has a few hundred, so a frame sets the fill a
-            // few hundred times rather than once per particle (~5,000).
+            // Grouped by colour: the image has a few hundred, so a frame fills a few
+            // hundred paths rather than one per particle (~5,000).
             particles.sort((a, b) => (a.color < b.color ? -1 : a.color > b.color ? 1 : 0));
         };
 
@@ -97,6 +103,12 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             let fastest = 0;
             let fill = '';
+            // Each colour's dots go into one path, filled when the colour changes.
+            const flush = () => {
+                if (!fill) return;
+                ctx.fillStyle = fill;
+                ctx.fill();
+            };
 
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
@@ -137,13 +149,20 @@ const ImageParticles: FC<{ className?: string }> = ({ className = 'h-96' }) => {
                 p.y += p.vy;
                 fastest = Math.max(fastest, Math.abs(p.vx) + Math.abs(p.vy));
 
-                // Draw
+                // Draw: round dots. (Squares read as squares once particles settle
+                // exactly on their pixel grid, e.g. after the mouse stirs them.)
                 if (p.color !== fill) {
+                    flush();
                     fill = p.color;
-                    ctx.fillStyle = fill;
+                    ctx.beginPath();
                 }
-                ctx.fillRect(p.x, p.y, p.size, p.size); // Rect is faster than arc
+                const radius = p.size * 0.6;
+                const cx = p.x + p.size / 2;
+                const cy = p.y + p.size / 2;
+                ctx.moveTo(cx + radius, cy);
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
             }
+            flush();
 
             return fastest;
         };
