@@ -2,9 +2,10 @@ import { Group, Mesh, Object3D, Vector2, Vector3, type MeshBasicMaterial } from 
 import { defineScene, easeOutQuint, PAPER, progress, roundedShape, slab } from '../runtime';
 
 /**
- * Company: the Frilogix X as four physical arms, matte ink (software) and
- * frosted glass (the agents inside it). They wait scattered, then glide
- * together into the mark. Callouts: top left, top right, bottom right, bottom left.
+ * Company: the Frilogix X as four physical arms, matte ink on the left
+ * (software) and frosted glass on the right (the AI inside it). They wait
+ * scattered, then glide together into the mark. Callouts: top left, top right,
+ * bottom right, bottom left.
  */
 
 /** Half the gap between arms, before the bevel eats into it; the gaps form a "+". */
@@ -14,7 +15,7 @@ const OUTER_CUT = 0.56;
 const INNER_CUT = 0.28;
 const DEPTH = 0.26;
 /** Rounded edge, front and back. */
-const BEVEL = 0.05;
+const BEVEL = 0.032;
 /** Arms float this far above the paper, so their shadows read. */
 const LIFT = 0.1;
 
@@ -51,7 +52,7 @@ export default defineScene(PAPER, (kit) => {
     // One outline, centred on its own middle so each arm turns about itself while it flies in.
     const outline = armOutline();
     const centre = outline.reduce((sum, p) => sum.add(p), new Vector2()).divideScalar(outline.length);
-    const armShape = roundedShape(outline, [0.09, 0.035, 0.035, 0.03, 0.035, 0.035], centre);
+    const armShape = roundedShape(outline, [0.045, 0.018, 0.018, 0.016, 0.018, 0.018], centre);
     const armGeometry = slab(armShape, DEPTH, BEVEL);
     armGeometry.translate(0, 0, DEPTH / 2 + BEVEL); // back face on z = 0
     const silhouette = armShape.getPoints(6);
@@ -60,13 +61,22 @@ export default defineScene(PAPER, (kit) => {
     const outward = new Vector2(-1, 1).normalize();
 
     // Arms in reading order round the mark: top left (ink), top right (glass),
-    // bottom right (ink), bottom left (glass). Each is the top-left arm turned
-    // a quarter further clockwise.
+    // bottom right (glass), bottom left (ink): software on the left, AI on the
+    // right. Each is the top-left arm turned a quarter further clockwise.
+    kit.glass().thickness = DEPTH;
     const arms = [0, 1, 2, 3].map((k) => {
         const pivot = new Group();
         pivot.rotation.z = (-k * Math.PI) / 2;
-        const solid = k % 2 === 0;
+        const solid = k === 0 || k === 3;
         const mesh = new Mesh(armGeometry, solid ? kit.ink() : kit.glass());
+        // A recessed metal back gives the glass a readable silhouette and
+        // an internal reflection, even against the light page.
+        if (!solid) {
+            const backing = new Mesh(armGeometry, kit.metal());
+            backing.scale.set(0.96, 0.96, 0.035);
+            backing.position.z = 0.015;
+            mesh.add(backing);
+        }
         // Glass lets light through, so its shadow is lighter and tinted.
         const shadowOpacity = solid ? 0.36 : 0.24;
         const shadow = kit.shadow(silhouette, 1.7, solid ? '#00171f' : '#0b6577', shadowOpacity);

@@ -39,10 +39,27 @@ function random(seed: number) {
 }
 
 export default defineScene(INK, (kit) => {
-    const block = new Mesh(roundedBox(BLOCK.width, BLOCK.height, BLOCK.depth, 0.08), kit.glowGlass());
+    kit.glowGlass().thickness = BLOCK.depth;
+    kit.glowGlass().transmission = 0.78;
+    kit.glowGlass().emissiveIntensity = 0.12;
+    const block = new Mesh(roundedBox(BLOCK.width, BLOCK.height, BLOCK.depth, 0.04, 0.018), kit.glowGlass());
     block.position.set(BLOCK.x, BLOCK.y, 0);
-    const plinth = new Mesh(roundedBox(PLINTH.width, PLINTH.height, PLINTH.depth, 0.05), kit.slate());
+    const waferGeometry = roundedBox(0.64, 0.52, 0.022, 0.035, 0.005);
+    waferGeometry.rotateX(-Math.PI / 2);
+    for (const y of [-0.23, 0, 0.23]) {
+        const wafer = new Mesh(waferGeometry, kit.metal());
+        wafer.position.y = y;
+        block.add(wafer);
+    }
+    const core = new Mesh(roundedBox(0.23, 0.38, 0.23, 0.02, 0.012), kit.signal());
+    block.add(core);
+    const plinth = new Mesh(roundedBox(PLINTH.width, PLINTH.height, PLINTH.depth, 0.025, 0.012), kit.slate());
     plinth.position.set(PLINTH.x, PLINTH.y, 0);
+    const capGeometry = roundedBox(PLINTH.width - 0.065, PLINTH.depth - 0.065, 0.012, 0.025, 0.003);
+    capGeometry.rotateX(-Math.PI / 2);
+    const plinthFace = new Mesh(capGeometry, kit.metal());
+    plinthFace.position.y = PLINTH.height / 2 - 0.004;
+    plinth.add(plinthFace);
     kit.root.add(block, plinth);
 
     const cloudAnchor = new Object3D();
@@ -57,16 +74,22 @@ export default defineScene(INK, (kit) => {
 
     const rand = random(7);
     const jitter = (range: number) => (rand() * 2 - 1) * range;
-    const cubeGeometry = roundedBox(CUBE, CUBE, CUBE, 0.025, 0.015);
+    const cubeGeometry = roundedBox(CUBE, CUBE, CUBE, 0.012, 0.008);
     const plinthTop = PLINTH.y + PLINTH.height / 2 + CUBE / 2;
 
     const cubes = Array.from({ length: COUNT }, (_, i) => {
         const mesh = new Mesh(cubeGeometry, kit.chalk());
         kit.root.add(mesh);
         const landing = SURVIVORS.get(i);
+        const shadow = landing !== undefined ? kit.contactShadow(CUBE, CUBE) : null;
+        if (shadow) {
+            shadow.position.set(PLINTH.x + landing!, PLINTH.y + PLINTH.height / 2 + 0.002, 0);
+            kit.root.add(shadow);
+        }
         const inside = new Vector3(BLOCK.x + jitter(0.28), BLOCK.y + jitter(0.2), jitter(0.18));
         return {
             mesh,
+            shadow,
             launched: i < LAUNCHED,
             survives: landing !== undefined,
             start: new Vector3(CLOUD.x + jitter(0.28), CLOUD.y + jitter(0.3), jitter(0.25)),
@@ -109,6 +132,7 @@ export default defineScene(INK, (kit) => {
                         scale = 1 - u;
                     }
                 }
+                if (cube.shadow) cube.shadow.material.opacity = 0.45 * Math.max(0, (t - 0.85) / 0.15);
                 cube.mesh.position.copy(point);
                 // Tumbling while in flight; survivors land square.
                 const turn = cube.survives ? 1 - t : 1 + t;

@@ -38,15 +38,34 @@ const PULL = 0.34;
 const REQUEST_RADIUS = 0.055;
 
 export default defineScene(PAPER, (kit) => {
-    const plateGeometry = roundedBox(SIZE, SIZE, THICKNESS, 0.12, 0.035);
+    const plateGeometry = roundedBox(SIZE, SIZE, THICKNESS, 0.075, 0.024);
     plateGeometry.rotateX(-Math.PI / 2); // lie flat: thickness along y
-    const silhouette = roundedRect(SIZE, SIZE, 0.12).getPoints(6);
+    const faceGeometry = roundedBox(SIZE - 0.1, SIZE - 0.1, 0.012, 0.065, 0.003);
+    faceGeometry.rotateX(-Math.PI / 2);
+    const rimGeometry = roundedBox(SIZE - 0.075, SIZE - 0.075, 0.008, 0.07, 0.002);
+    rimGeometry.rotateX(-Math.PI / 2);
+    const silhouette = roundedRect(SIZE, SIZE, 0.065).getPoints(6);
 
     const restY = (i: number) => (1.5 - i) * SPACING;
     const top = (y: number) => y + THICKNESS / 2;
 
+    kit.glass().thickness = THICKNESS;
     const plates = [0, 1, 2, 3].map((i) => {
         const mesh = new Mesh(plateGeometry, i === 3 ? kit.glass() : kit.ink());
+        // A thin metal perimeter under a ceramic face gives the layer a
+        // manufactured edge, rather than a single featureless block.
+        if (i < 3) {
+            const rim = new Mesh(rimGeometry, kit.metal());
+            rim.position.y = THICKNESS / 2;
+            const face = new Mesh(faceGeometry, kit.ink());
+            face.position.y = THICKNESS / 2 + 0.008;
+            mesh.add(rim, face);
+        } else {
+            const coreGeometry = roundedBox(SIZE - 0.22, SIZE - 0.22, 0.016, 0.06, 0.004);
+            coreGeometry.rotateX(-Math.PI / 2);
+            const core = new Mesh(coreGeometry, kit.signal());
+            mesh.add(core);
+        }
         // Each plate shadows the one below (or, for the last, the paper under the stack).
         const shadow = kit.shadow(silhouette, 2.2, i === 3 ? '#0b6577' : '#00171f', i === 3 ? 0.18 : 0.22);
         shadow.rotation.x = -Math.PI / 2;
@@ -61,7 +80,8 @@ export default defineScene(PAPER, (kit) => {
     // The request's path through the stack, and the request itself.
     kit.root.add(kit.dashes([new Vector3(0, 1.05, 0), new Vector3(0, restY(3) - 0.2, 0)], '#007ea7', 0.025));
     const request = new Mesh(roundedBox(REQUEST_RADIUS * 2, REQUEST_RADIUS * 2, REQUEST_RADIUS * 2, 0.03, 0.02), kit.signal());
-    kit.root.add(request);
+    const requestShadow = kit.contactShadow(REQUEST_RADIUS * 2, REQUEST_RADIUS * 2);
+    kit.root.add(requestShadow, request);
     const restingOn = (i: number) => top(restY(i)) + REQUEST_RADIUS + 0.03;
     const entry = 1.05;
 
@@ -110,6 +130,8 @@ export default defineScene(PAPER, (kit) => {
             }
             const home = elapsed !== null && elapsed >= TRIP_END;
             request.position.set(home ? plates[0].mesh.position.x : 0, home ? restingOn(0) : y, 0);
+            requestShadow.position.set(request.position.x, top(plates[0].mesh.position.y) + 0.003, 0);
+            requestShadow.material.opacity = 0.4 * progress(elapsed, TRIP_END - 150, 150);
             return moving;
         },
     };

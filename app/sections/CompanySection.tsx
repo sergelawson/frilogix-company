@@ -31,6 +31,7 @@ export default function CompanySection() {
                             <Art3D
                                 load={loadMark}
                                 callouts={markCallouts}
+                                legend={companyMark.legend}
                                 description={companyMark.description}
                                 className="mt-6 aspect-[4/3] w-full lg:mt-0 lg:aspect-auto lg:h-[22rem] hscroll:h-[44vh]"
                             />

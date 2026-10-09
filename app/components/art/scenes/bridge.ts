@@ -26,10 +26,10 @@ const CROSS_MS = 1700;
 
 const PACKET = 0.11;
 const LIFT = 0.06;
-const GLOW = 0.6;
+const GLOW = 0.22;
 
 export default defineScene(INK, (kit) => {
-    const cliffGeometry = roundedBox(CLIFF.width, CLIFF.height, CLIFF.depth, 0.06);
+    const cliffGeometry = roundedBox(CLIFF.width, CLIFF.height, CLIFF.depth, 0.035, 0.015);
     const cliffs = [-1, 1].map((side) => {
         const mesh = new Mesh(cliffGeometry, kit.slate());
         mesh.position.set(side * (SPAN + CLIFF.width / 2), DECK - CLIFF.height / 2, 0);
@@ -41,11 +41,17 @@ export default defineScene(INK, (kit) => {
         return { mesh, anchor };
     });
 
-    const segmentGeometry = roundedBox(SEGMENT.width, SEGMENT.height, SEGMENT.depth, 0.04, 0.03);
+    const segmentGeometry = roundedBox(SEGMENT.width, SEGMENT.height, SEGMENT.depth, 0.022, 0.012);
+    const substrateGeometry = roundedBox(SEGMENT.width - 0.025, SEGMENT.depth - 0.045, 0.022, 0.018, 0.005);
+    substrateGeometry.rotateX(-Math.PI / 2);
     const segments = [0, 1, 2, 3].map((i) => {
         // Own material, so each can glow on its own.
         const material = kit.glowGlass().clone();
+        material.thickness = SEGMENT.height;
         const mesh = new Mesh(segmentGeometry, material);
+        const substrate = new Mesh(substrateGeometry, kit.metal());
+        substrate.position.y = -SEGMENT.height / 2 + 0.008;
+        mesh.add(substrate);
         const x = -SPAN + JOINT + SEGMENT.width / 2 + i * (SEGMENT.width + JOINT);
         // Callout under the front edge, numbered like the columns below.
         const anchor = new Object3D();
@@ -59,7 +65,8 @@ export default defineScene(INK, (kit) => {
     kit.root.add(kit.dashes([new Vector3(-SPAN, DECK - CLIFF.height, 0), new Vector3(SPAN, DECK - CLIFF.height, 0)], '#5b7783'));
 
     const packet = new Mesh(roundedBox(PACKET, PACKET, PACKET, 0.025, 0.02), kit.chalk());
-    kit.root.add(packet);
+    const packetShadow = kit.contactShadow(PACKET, PACKET);
+    kit.root.add(packetShadow, packet);
     // The request waits at the prototype edge and ends at the production edge.
     const from = -(SPAN + 0.28);
     const to = SPAN + 0.28;
@@ -86,7 +93,7 @@ export default defineScene(INK, (kit) => {
                 segment.lift = kit.reduceMotion ? lift : approach(segment.lift, lift);
                 // Brighter while highlighted, and for a moment as the packet passes over.
                 const passing = cross > 0 && cross < 1 ? Math.max(0, 1 - Math.abs(packetX - segment.x) / 0.4) : 0;
-                const glow = GLOW + (highlight === i ? 0.7 : 0) + passing * 0.8;
+                const glow = GLOW + (highlight === i ? 0.25 : 0) + passing * 0.3;
                 segment.glow = kit.reduceMotion ? glow : approach(segment.glow, glow, 0.2);
                 if (segment.lift !== lift || segment.glow !== glow) moving = true;
 
@@ -97,6 +104,7 @@ export default defineScene(INK, (kit) => {
 
             // The request waits on the prototype cliff, then crosses.
             packet.position.set(packetX, DECK + PACKET / 2, 0);
+            packetShadow.position.set(packetX, DECK + 0.002, 0);
             return moving;
         },
     };

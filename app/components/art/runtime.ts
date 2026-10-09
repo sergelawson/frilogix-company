@@ -33,7 +33,7 @@ import {
     type Material,
     type Texture,
 } from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /**
  * Shared runtime for the site's 3D drawings (./scenes/*): the Company mark,
@@ -147,10 +147,15 @@ export function slab(shape: Shape, depth: number, bevel: number): ExtrudeGeometr
         bevelEnabled: true,
         bevelThickness: bevel,
         bevelSize: bevel * 0.8,
-        bevelSegments: 8,
-        curveSegments: 10,
+        bevelSegments: 12,
+        curveSegments: 16,
     });
     geometry.translate(0, 0, -depth / 2);
+    // Smooth the bevel strips without softening the flat faces. The utility's
+    // position hash uses hundredths; enlarge first to preserve tiny details.
+    geometry.scale(100, 100, 100);
+    toCreasedNormals(geometry, Math.PI / 5);
+    geometry.scale(0.01, 0.01, 0.01);
     return geometry;
 }
 
@@ -167,14 +172,14 @@ function grainTexture(): CanvasTexture {
     const ctx = canvas.getContext('2d')!;
     const image = ctx.createImageData(size, size);
     for (let i = 0; i < image.data.length; i += 4) {
-        const v = 110 + Math.random() * 60;
+        const v = 124 + Math.random() * 8;
         image.data[i] = image.data[i + 1] = image.data[i + 2] = v;
         image.data[i + 3] = 255;
     }
     ctx.putImageData(image, 0, 0);
     const texture = new CanvasTexture(canvas);
     texture.wrapS = texture.wrapT = RepeatWrapping;
-    texture.repeat.set(3, 3);
+    texture.repeat.set(6, 6);
     return texture;
 }
 
@@ -230,59 +235,91 @@ function shadowTexture(silhouette: Vector2[], plane: number): CanvasTexture {
     return new CanvasTexture(canvas);
 }
 
-/** Device pixels per CSS pixel the drawings render at: crisp enough for soft 3D, and ~45% cheaper than 2x. */
-const MAX_PIXEL_RATIO = 1.5;
+/** A photographic studio: broad key, overhead strip and a narrow cool rim.
+ * The dark gaps between softboxes give glass and metal their reflected edges.
+ */
+function studioEnvironment() {
+    const studio = new Scene();
+    studio.background = new Color('#394b59');
+    const panel = (position: [number, number, number], width: number, height: number, color: string, intensity: number) => {
+        const mesh = new Mesh(
+            new PlaneGeometry(width, height),
+            new MeshBasicMaterial({ color: new Color(color).multiplyScalar(intensity), side: DoubleSide }),
+        );
+        mesh.position.set(...position);
+        mesh.lookAt(0, 0, 0);
+        studio.add(mesh);
+    };
+    panel([-3, 4, 5], 3, 6, '#fff7ed', 7);
+    panel([-1, 5, -4], 6, 2, '#f4fbff', 5);
+    panel([4, 0.5, 3], 1.2, 5, '#c6eafa', 8);
+    panel([-4, -1, 1], 1, 4, '#ffffff', 3);
+    return studio;
+}
+
+/** Supersample fine bevels, with a bounded cost on high-density screens. */
+const MAX_PIXEL_RATIO = 2;
 
 /** The materials of the house style. Each call makes a new instance; equal instances share compiled shaders. */
 function makeMaterials(grain: Texture) {
     return {
         /** Matte ink: software. */
         ink: () =>
-            new MeshStandardMaterial({ color: '#0b2235', roughness: 0.7, bumpMap: grain, bumpScale: 0.6, envMapIntensity: 0.12 }),
+            new MeshPhysicalMaterial({
+                color: '#092f47', metalness: 0.42, roughness: 0.24,
+                clearcoat: 0.65, clearcoatRoughness: 0.18,
+                bumpMap: grain, bumpScale: 0.008, envMapIntensity: 0.65,
+            }),
         /** Frosted glass on paper: AI. */
         glass: () =>
             new MeshPhysicalMaterial({
-                color: '#eefbfc',
-                roughness: 0.3,
-                transmission: 1,
+                color: '#168ca3',
+                roughness: 0.17,
+                transmission: 0.62,
                 thickness: 0.35,
                 ior: 1.5,
-                attenuationColor: new Color('#5fc3d1'),
-                attenuationDistance: 0.5,
+                attenuationColor: new Color('#00768b'),
+                attenuationDistance: 0.65,
                 specularIntensity: 1,
-                clearcoat: 0.5,
-                clearcoatRoughness: 0.35,
+                clearcoat: 1,
+                clearcoatRoughness: 0.08,
                 side: DoubleSide, // renders the back faces too, so the inner edges show through
             }),
-        /** Frosted glass that glows, for ink panels, where clear glass would only show the dark behind it. */
+        /** Lightly tinted glass with a restrained fill for the ink panels. */
         glowGlass: () =>
             new MeshPhysicalMaterial({
-                color: '#c9f1f4',
-                roughness: 0.3,
-                transmission: 1,
+                color: '#7be7ee',
+                roughness: 0.15,
+                transmission: 0.58,
                 thickness: 0.35,
                 ior: 1.5,
-                attenuationColor: new Color('#5fc3d1'),
-                attenuationDistance: 0.6,
-                emissive: new Color('#0f6c7a'),
-                emissiveIntensity: 0.6,
+                attenuationColor: new Color('#68b8c2'),
+                attenuationDistance: 1.2,
+                emissive: new Color('#157f93'),
+                emissiveIntensity: 0.22,
+                envMapIntensity: 1.25,
                 specularIntensity: 1,
-                clearcoat: 0.6,
-                clearcoatRoughness: 0.3,
+                clearcoat: 1,
+                clearcoatRoughness: 0.08,
                 side: DoubleSide,
             }),
         /** Matte slate: structure on ink panels. */
         slate: () =>
-            new MeshStandardMaterial({ color: '#2c4a56', roughness: 0.72, bumpMap: grain, bumpScale: 0.5, envMapIntensity: 0.35 }),
+            new MeshStandardMaterial({
+                color: '#829ca9', metalness: 0.5, roughness: 0.3,
+                bumpMap: grain, bumpScale: 0.01, envMapIntensity: 0.85,
+            }),
+        metal: () => new MeshStandardMaterial({ color: '#aec8d1', metalness: 0.88, roughness: 0.22, envMapIntensity: 0.9 }),
         /** Matte paper-white: small objects on ink panels. */
-        chalk: () => new MeshStandardMaterial({ color: '#dfe8ea', roughness: 0.6, envMapIntensity: 0.6 }),
+        chalk: () => new MeshStandardMaterial({ color: '#dfe8ea', metalness: 0.15, roughness: 0.28, envMapIntensity: 0.85 }),
         /** Teal: the one signal in a drawing. */
         signal: () =>
             new MeshStandardMaterial({
-                color: '#1aa3c9',
-                roughness: 0.4,
+                color: '#16b3d1',
+                metalness: 0.35,
+                roughness: 0.22,
                 emissive: new Color('#007ea7'),
-                emissiveIntensity: 0.45,
+                emissiveIntensity: 0.12,
                 envMapIntensity: 0.6,
             }),
         shadow: (alphaMap: Texture, color: string, opacity: number) =>
@@ -294,11 +331,13 @@ function makeMaterials(grain: Texture) {
 
 /** Key light from the top left (so shadows fall to the bottom right) and a cool rim. Every scene has the same two. */
 function addLights(scene: Scene) {
-    const key = new DirectionalLight('#ffffff', 2.4);
+    const key = new DirectionalLight('#fff6eb', 2.8);
     key.position.set(-3, 4.5, 6);
-    const rim = new DirectionalLight('#dff4f6', 0.7);
-    rim.position.set(4, -2, 3);
-    scene.add(key, rim);
+    const rim = new DirectionalLight('#c1e8f4', 1.6);
+    rim.position.set(3, 2, -4);
+    const fill = new DirectionalLight('#e6f1fa', 1.1);
+    fill.position.set(2, -1, 5);
+    scene.add(key, rim, fill);
 }
 
 // --- The engine: one WebGL context, environment and shader cache for every drawing. ---
@@ -329,8 +368,8 @@ function acquireEngine(): Engine {
     const renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: 'low-power' });
     renderer.outputColorSpace = SRGBColorSpace;
     renderer.toneMapping = NeutralToneMapping;
-    // Frosted glass blurs what's behind it anyway: half-resolution transmission looks the same.
-    renderer.transmissionResolutionScale = 0.5;
+    // Full-resolution refraction preserves the internal layers and polished edges.
+    renderer.transmissionResolutionScale = 1;
 
     const grain = grainTexture();
 
@@ -341,7 +380,7 @@ function acquireEngine(): Engine {
     const materials = makeMaterials(grain);
     const box = new BoxGeometry(0.1, 0.1, 0.1);
     const glasses = [materials.glass(), materials.glowGlass()];
-    for (const material of [...glasses, materials.ink(), materials.slate(), materials.chalk(), materials.signal(), materials.shadow(grain, '#000', 0.2)]) {
+    for (const material of [...glasses, materials.ink(), materials.slate(), materials.metal(), materials.chalk(), materials.signal(), materials.shadow(grain, '#000', 0.2)]) {
         warm.add(new Mesh(box, material));
     }
     const line = new LineSegments(new BufferGeometry().setFromPoints([new Vector3(), new Vector3(0, 1, 0)]), materials.dashes('#000', 0.03));
@@ -351,12 +390,17 @@ function acquireEngine(): Engine {
     const compile = async () => {
         // The environment: compiling the room's shaders first, off the main
         // thread, halves the time fromScene() then blocks it.
-        const room = new RoomEnvironment();
+        const room = studioEnvironment();
         await renderer.compileAsync(room, new PerspectiveCamera(90, 1, 0.1, 100));
         const pmrem = new PMREMGenerator(renderer);
-        created.envMap = pmrem.fromScene(room, 0.04).texture;
+        created.envMap = pmrem.fromScene(room, 0.015).texture;
         warm.environment = created.envMap;
-        room.dispose();
+        room.traverse((object) => {
+            if (object instanceof Mesh) {
+                object.geometry.dispose();
+                (object.material as Material).dispose();
+            }
+        });
         pmrem.dispose();
 
         const camera = new PerspectiveCamera();
@@ -427,16 +471,20 @@ export interface Kit {
     ink: () => MeshStandardMaterial;
     /** Frosted glass on paper: AI. */
     glass: () => MeshPhysicalMaterial;
-    /** Frosted glass that glows, for ink panels, where clear glass would only show the dark behind it. */
+    /** Lightly tinted glass with a restrained fill for the ink panels. */
     glowGlass: () => MeshPhysicalMaterial;
     /** Matte slate: structure on ink panels. */
     slate: () => MeshStandardMaterial;
+    /** Polished metal for thin rims and internal supports. */
+    metal: () => MeshStandardMaterial;
     /** Matte paper-white: small objects on ink panels. */
     chalk: () => MeshStandardMaterial;
     /** Teal: the one signal in a drawing. */
     signal: () => MeshStandardMaterial;
     /** A blurred shadow of `silhouette` (centred on the origin, within `plane`), lying on z = 0. */
     shadow: (silhouette: Vector2[], plane: number, color: string, opacity: number) => Mesh<PlaneGeometry, MeshBasicMaterial>;
+    /** A tight horizontal contact shadow, placed just above the supporting surface. */
+    contactShadow: (width: number, depth: number) => Mesh<PlaneGeometry, MeshBasicMaterial>;
     /** Dashed construction lines, as pairs of points. */
     dashes: (points: Vector3[], color: string, dash?: number) => LineSegments;
 }
@@ -479,6 +527,7 @@ export function defineScene(background: string, build: (kit: Kit) => SceneSpec):
             glass: once(materials.glass),
             glowGlass: once(materials.glowGlass),
             slate: once(materials.slate),
+            metal: once(materials.metal),
             chalk: once(materials.chalk),
             signal: once(materials.signal),
             shadow(silhouette, plane, color, opacity) {
@@ -489,6 +538,12 @@ export function defineScene(background: string, build: (kit: Kit) => SceneSpec):
                     textures.push(map);
                 }
                 return new Mesh(new PlaneGeometry(plane, plane), materials.shadow(map, color, opacity));
+            },
+            contactShadow(width, depth) {
+                const plane = Math.max(width, depth) * 1.8;
+                const shadow = kit.shadow(roundedRect(width, depth, Math.min(width, depth) * 0.15).getPoints(6), plane, '#000000', 0.45);
+                shadow.rotation.x = -Math.PI / 2;
+                return shadow;
             },
             dashes(points, color, dash = 0.03) {
                 const lines = new LineSegments(new BufferGeometry().setFromPoints(points), materials.dashes(color, dash));
@@ -512,7 +567,7 @@ export function defineScene(background: string, build: (kit: Kit) => SceneSpec):
             width = container.clientWidth;
             height = container.clientHeight;
             if (!width || !height) return;
-            const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
+            const ratio = Math.min(Math.max(window.devicePixelRatio, 1.5), MAX_PIXEL_RATIO);
             canvas.width = Math.round(width * ratio);
             canvas.height = Math.round(height * ratio);
             camera.aspect = width / height;

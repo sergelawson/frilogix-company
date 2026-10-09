@@ -11,14 +11,20 @@ export const companyIntro = {
 };
 
 /**
- * The 3D mark beside the title: the X as four arms, matte ink for software and
- * frosted glass for the agents inside it. Callouts in the order top left, top
- * right, bottom right, bottom left.
+ * The 3D mark beside the title: the X as four arms, read as a two-by-two.
+ * Left, matte ink: the software. Right, frosted glass: the AI inside it. On
+ * top what people use, underneath what runs it. Callouts in the order top
+ * left, top right, bottom right, bottom left.
  */
 export const companyMark = {
-    labels: ['Interface', 'Models', 'Backend', 'Agents'],
+    labels: ['Apps', 'Agents', 'Models', 'Backend'],
+    /** The key under the drawing, one item under each half: what the two materials mean. */
+    legend: [
+        { label: 'Software', kind: 'matte' },
+        { label: 'AI', kind: 'glass' },
+    ],
     description:
-        'The Frilogix X built from four arms: two solid ink arms for interface and backend, and two frosted glass arms for models and agents.',
+        'The Frilogix X built from four arms. On the left, two solid ink arms for the software: apps, and the backend that runs them. On the right, two frosted glass arms for the AI inside it: agents, and the models that run them.',
 } as const;
 
 /** The argument, in order: how it is today, what that costs, what we believe. */
